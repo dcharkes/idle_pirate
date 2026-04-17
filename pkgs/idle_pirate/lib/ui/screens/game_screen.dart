@@ -12,7 +12,42 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  int _selectedAmount = 1; // 1, 10, or -1 for Max
+  int _selectedAmount = 1;
+
+  IconData _getIconForId(String id) {
+    switch (id) {
+      case 'sharper_hooks':
+        return Icons.fitness_center;
+      case 'better_shovels':
+        return Icons.agriculture;
+      case 'heavy_boots':
+        return Icons.directions_walk;
+      case 'cabin_boy':
+        return Icons.person;
+      case 'gunner':
+        return Icons.security;
+      case 'quartermaster':
+        return Icons.star;
+      case 'sloop':
+      case 'brigantine':
+      case 'frigate':
+        return Icons.directions_boat;
+      default:
+        return Icons.help_outline;
+    }
+  } // 1, 10, or -1 for Max
+
+  Widget _getImageForId(String id) {
+    final assetPath = 'assets/images/$id.png';
+    return Image.asset(
+      assetPath,
+      width: 40,
+      height: 40,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(_getIconForId(id));
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +63,20 @@ class _GameScreenState extends State<GameScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Doubloons: ${state.doubloons}',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/doubloon.png',
+                        width: 30,
+                        height: 30,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Doubloons: ${state.doubloons}',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                    ],
                   ),
                   Text(
                     'Click Power: ${widget.controller.clickPower}',
@@ -61,9 +106,20 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: widget.controller.clickChest,
-                    child: const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text('Click Chest'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/chest.png',
+                            width: 40,
+                            height: 40,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('Click Chest'),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -91,6 +147,7 @@ class _GameScreenState extends State<GameScreen> {
 
                     return Card(
                       child: ListTile(
+                        leading: _getImageForId(upgrade.id),
                         title: Text('${upgrade.name} ($ownedCount)'),
                         subtitle: Text('+${upgrade.benefit} click power'),
                         trailing: ElevatedButton(
@@ -137,6 +194,7 @@ class _GameScreenState extends State<GameScreen> {
 
                     return Card(
                       child: ListTile(
+                        leading: _getImageForId(generator.id),
                         title: Text('${generator.name} ($ownedCount)'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,6 +255,7 @@ class _GameScreenState extends State<GameScreen> {
 
                     return Card(
                       child: ListTile(
+                        leading: _getImageForId(generator.id),
                         title: Text('${generator.name} ($ownedCount)'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
