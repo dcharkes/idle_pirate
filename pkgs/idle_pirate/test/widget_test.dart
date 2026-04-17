@@ -1,30 +1,53 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:idle_pirate/main.dart';
+import 'package:idle_pirate/state/game_controller.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Clicking chest increases doubloons', (
+    WidgetTester tester,
+  ) async {
+    // 1. Setup the state and controller
+    final controller = GameController();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // 2. Pump the widget
+    await tester.pumpWidget(MyApp(controller: controller));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // 3. Verify that our counter starts at 0.
+    expect(find.text('Doubloons: 0'), findsOneWidget);
+
+    // 4. Tap the 'Click Chest' button and trigger a frame.
+    await tester.tap(find.text('Click Chest'));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // 5. Verify that our counter has incremented.
+    expect(find.text('Doubloons: 1'), findsOneWidget);
+  });
+
+  testWidgets('Playing through game simulation', (WidgetTester tester) async {
+    final controller = GameController();
+    await tester.pumpWidget(MyApp(controller: controller));
+
+    expect(find.text('Doubloons: 0'), findsOneWidget);
+
+    // Click 10 times
+    for (int i = 0; i < 10; i++) {
+      await tester.tap(find.text('Click Chest'));
+    }
+    await tester.pump();
+    expect(find.text('Doubloons: 10'), findsOneWidget);
+
+    // Buy Sharper Hooks
+    await tester.tap(find.text('10 D'));
+    await tester.pump();
+
+    // Doubloons should be 0
+    expect(find.text('Doubloons: 0'), findsOneWidget);
+    expect(find.text('Click Power: 2'), findsOneWidget);
+
+    // Click once, should get 2 doubloons
+    await tester.tap(find.text('Click Chest'));
+    await tester.pump();
+    expect(find.text('Doubloons: 2'), findsOneWidget);
   });
 }
