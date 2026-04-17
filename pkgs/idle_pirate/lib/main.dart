@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'state/game_controller.dart';
 import 'ui/screens/game_screen.dart';
 
-void main() {
-  final controller = GameController();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  final box = await Hive.openBox('game_state');
+
+  final controller = GameController(box: box);
   runApp(MyApp(controller: controller));
 }
 
