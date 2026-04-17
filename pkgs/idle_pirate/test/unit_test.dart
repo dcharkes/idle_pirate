@@ -22,7 +22,7 @@ void main() {
 
   test('Formula: getBulkCost calculates correctly', () async {
     final box = await Hive.openBox('test_cost');
-    final controller = GameController(box: box);
+    final controller = GameController(box: box, startTimer: false);
 
     final upgrade = Upgrade(
       id: 'test_upgrade',
@@ -45,7 +45,7 @@ void main() {
     final box = await Hive.openBox('test_max');
     await box.put('doubloons', 10);
 
-    final controller = GameController(box: box);
+    final controller = GameController(box: box, startTimer: false);
     final upgrade = Upgrade(
       id: 'test_upgrade',
       name: 'Test',
@@ -56,9 +56,45 @@ void main() {
     expect(controller.getMaxAffordable(upgrade), 1);
 
     // With 203 doubloons, max afford should be 10
-        await box.put('doubloons', 204);
-    final controller2 = GameController(box: box);
+    await box.put('doubloons', 204);
+    final controller2 = GameController(box: box, startTimer: false);
     expect(controller2.getMaxAffordable(upgrade), 10);
+
+    await box.close();
+  });
+
+  test('Passive Income: calculates correctly', () async {
+    final box = await Hive.openBox('test_passive');
+    await box.put('doubloons', 100);
+    final controller = GameController(box: box, startTimer: false);
+
+    // Initial income should be 0
+    expect(controller.passiveIncomePerSecond, 0);
+
+    // Buy a Cabin Boy (id: 'cabin_boy', benefit: 1)
+    final cabinBoy = initialGenerators.firstWhere((g) => g.id == 'cabin_boy');
+    controller.buyUpgrades(cabinBoy, 1);
+
+    expect(controller.passiveIncomePerSecond, 1);
+
+    await box.close();
+  });
+
+  test('Offline Earnings: calculates correctly', () async {
+    final box = await Hive.openBox('test_offline');
+
+    // Set up state with 1 Cabin Boy
+    await box.put('generators', {'cabin_boy': 1});
+    await box.put('doubloons', 0);
+
+    // Set last saved to 10 seconds ago
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await box.put('last_saved', now - 10000);
+
+    final controller = GameController(box: box, startTimer: false);
+
+    // Should have earned 10 doubloons (1/sec * 10 sec)
+    expect(controller.state.doubloons, 10);
 
     await box.close();
   });

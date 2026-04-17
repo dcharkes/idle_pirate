@@ -23,3 +23,15 @@ final List<Upgrade> initialUpgrades = [
   ),
   Upgrade(id: 'heavy_boots', name: 'Heavy Boots', baseCost: 5000, benefit: 25),
 ];
+
+// Passive Generators (The Crew) for Milestone 3
+final List<Upgrade> initialGenerators = [
+  Upgrade(id: 'cabin_boy', name: 'Cabin Boy', baseCost: 15, benefit: 1),
+  Upgrade(id: 'gunner', name: 'Gunner', baseCost: 500, benefit: 15),
+  Upgrade(
+    id: 'quartermaster',
+    name: 'Quartermaster',
+    baseCost: 8000,
+    benefit: 100,
+  ),
+];
