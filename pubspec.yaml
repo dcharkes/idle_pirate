@@ -1,0 +1,8 @@
+name: idle_pirate_workspace
+
+environment:
+  sdk: '>=3.10.0 <4.0.0'
+
+workspace:
+  - pkgs/idle_pirate
+
