@@ -14,6 +14,9 @@ class GameController extends ChangeNotifier {
     'cabin_boy': 2.0,
     'gunner': 5.0,
     'quartermaster': 10.0,
+    'sloop': 20.0,
+    'brigantine': 60.0,
+    'frigate': 120.0,
   };
 
   Map<String, double> get generatorsProgress => _generatorsProgress;
@@ -66,9 +69,8 @@ class GameController extends ChangeNotifier {
     int income = 0;
     for (final generatorId in _state.generators.keys) {
       final count = _state.generators[generatorId] ?? 0;
-      final generator = initialGenerators.firstWhere(
-        (g) => g.id == generatorId,
-      );
+      final allGens = [...initialGenerators, ...initialFleet];
+      final generator = allGens.firstWhere((g) => g.id == generatorId);
       income += generator.benefit * count;
     }
     return income;
@@ -91,9 +93,8 @@ class GameController extends ChangeNotifier {
         final newProgress = currentProgress + (0.033 / duration);
 
         if (newProgress >= 1.0) {
-          final generator = initialGenerators.firstWhere(
-            (g) => g.id == generatorId,
-          );
+          final allGens = [...initialGenerators, ...initialFleet];
+          final generator = allGens.firstWhere((g) => g.id == generatorId);
           final cycleReward = generator.benefit * count * duration;
           _state = _state.copyWith(
             doubloons: _state.doubloons + cycleReward.toInt(),
@@ -134,9 +135,8 @@ class GameController extends ChangeNotifier {
                 .floor();
             final remainderSeconds = totalElapsedWithCurrentProgress % duration;
 
-            final generator = initialGenerators.firstWhere(
-              (g) => g.id == generatorId,
-            );
+            final allGens = [...initialGenerators, ...initialFleet];
+            final generator = allGens.firstWhere((g) => g.id == generatorId);
             final cycleReward = generator.benefit * count * duration;
 
             totalOfflineEarnings += (fullCycles * cycleReward).toInt();
@@ -173,7 +173,8 @@ class GameController extends ChangeNotifier {
 
   int getBulkCost(Upgrade upgrade, int count) {
     if (count <= 0) return 0;
-    final isGenerator = initialGenerators.any((g) => g.id == upgrade.id);
+    final allGens = [...initialGenerators, ...initialFleet];
+    final isGenerator = allGens.any((g) => g.id == upgrade.id);
     final currentCount = isGenerator
         ? (_state.generators[upgrade.id] ?? 0)
         : (_state.upgrades[upgrade.id] ?? 0);
@@ -188,7 +189,8 @@ class GameController extends ChangeNotifier {
   void buyUpgrades(Upgrade upgrade, int count) {
     final cost = getBulkCost(upgrade, count);
     if (_state.doubloons >= cost && count > 0) {
-      final isGenerator = initialGenerators.any((g) => g.id == upgrade.id);
+      final allGens = [...initialGenerators, ...initialFleet];
+      final isGenerator = allGens.any((g) => g.id == upgrade.id);
       if (isGenerator) {
         final currentCount = _state.generators[upgrade.id] ?? 0;
         final newGenerators = Map<String, int>.from(_state.generators);
@@ -212,7 +214,8 @@ class GameController extends ChangeNotifier {
   }
 
   int getMaxAffordable(Upgrade upgrade) {
-    final isGenerator = initialGenerators.any((g) => g.id == upgrade.id);
+    final allGens = [...initialGenerators, ...initialFleet];
+    final isGenerator = allGens.any((g) => g.id == upgrade.id);
     final currentCount = isGenerator
         ? (_state.generators[upgrade.id] ?? 0)
         : (_state.upgrades[upgrade.id] ?? 0);

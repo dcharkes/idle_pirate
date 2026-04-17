@@ -165,4 +165,46 @@ void main() {
 
     await box.close();
   });
+
+  testWidgets('Fleet generates income and update UI', (
+    WidgetTester tester,
+  ) async {
+    final box = FakeBox();
+    await box.put('doubloons', 50000);
+    final controller = GameController(box: box, startTimer: false);
+    await tester.pumpWidget(MyApp(controller: controller));
+
+    expect(find.text('Doubloons: 50000'), findsOneWidget);
+
+    // Buy Sloop (cost 50000)
+    await tester.ensureVisible(find.text('50000 D'));
+    await tester.tap(find.text('50000 D'));
+    await tester.pump();
+
+    // Doubloons should be 0
+    expect(find.text('Doubloons: 0'), findsOneWidget);
+
+    // Advance time by 1 tick (33ms) -> Sloop duration is 20s
+    controller.tick();
+    await tester.pump();
+
+    // Doubloons should still be 0, but progress should be 0.00165
+    expect(find.text('Doubloons: 0'), findsOneWidget);
+
+    final sloopTile = find.ancestor(
+      of: find.textContaining('Sloop'),
+      matching: find.byType(ListTile),
+    );
+    final progressFinder = find.descendant(
+      of: sloopTile,
+      matching: find.byType(LinearProgressIndicator),
+    );
+    expect(progressFinder, findsOneWidget);
+    final progressWidget = tester.widget<LinearProgressIndicator>(
+      progressFinder,
+    );
+    expect(progressWidget.value, closeTo(0.00165, 0.0001));
+
+    await box.close();
+  });
 }

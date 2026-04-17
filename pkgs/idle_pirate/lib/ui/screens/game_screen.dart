@@ -165,6 +165,66 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     );
                   }),
+                  const SizedBox(height: 32),
+                  const Text('Fleet:'),
+                  const SizedBox(height: 8),
+                  ...initialFleet.map((generator) {
+                    final ownedCount = state.generators[generator.id] ?? 0;
+
+                    int amountToBuy = _selectedAmount;
+                    final isMax = _selectedAmount == -1;
+                    if (isMax) {
+                      amountToBuy = widget.controller.getMaxAffordable(
+                        generator,
+                      );
+                    }
+
+                    final cost = widget.controller.getBulkCost(
+                      generator,
+                      amountToBuy,
+                    );
+                    final canAfford =
+                        state.doubloons >= cost && amountToBuy > 0;
+
+                    final costText = amountToBuy > 0
+                        ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
+                        : '${widget.controller.getBulkCost(generator, 1)} D';
+
+                    final duration =
+                        widget.controller.generatorDurations[generator.id] ??
+                        5.0;
+                    final cycleReward = generator.benefit * duration;
+
+                    return Card(
+                      child: ListTile(
+                        title: Text('${generator.name} ($ownedCount)'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '+${cycleReward.toInt()} doubloons every ${duration.toInt()}s',
+                            ),
+                            const SizedBox(height: 4),
+                            LinearProgressIndicator(
+                              value:
+                                  widget.controller.generatorsProgress[generator
+                                      .id] ??
+                                  0.0,
+                            ),
+                          ],
+                        ),
+                        trailing: ElevatedButton(
+                          onPressed: canAfford
+                              ? () => widget.controller.buyUpgrades(
+                                  generator,
+                                  amountToBuy,
+                                )
+                              : null,
+                          child: Text(costText),
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),

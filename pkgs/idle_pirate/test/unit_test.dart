@@ -128,4 +128,34 @@ void main() {
 
     await box.close();
   });
+
+  test('Fleet Production Cycle: updates progress and awards income', () async {
+    final box = await Hive.openBox('test_fleet');
+    await box.put('generators', {'sloop': 1});
+    await box.put('doubloons', 0);
+
+    final controller = GameController(box: box, startTimer: false);
+
+    // Initial progress should be 0
+    expect(controller.generatorsProgress['sloop'] ?? 0.0, 0.0);
+
+    // Tick once (33ms) -> Sloop duration is 20s, so progress should be 0.033 / 20.0 = 0.00165
+    controller.tick();
+    expect(controller.generatorsProgress['sloop'], closeTo(0.00165, 0.0001));
+    expect(controller.state.doubloons, 0);
+
+    // Tick enough times to complete the cycle (20s / 0.033s = 606 ticks)
+    for (int i = 0; i < 606; i++) {
+      controller.tick();
+    }
+
+    // Progress should reset to 0 and doubloons should be awarded
+    expect(controller.generatorsProgress['sloop'], 0.0);
+    expect(
+      controller.state.doubloons,
+      10000,
+    ); // 1 sloop * 500 benefit * 20s duration
+
+    await box.close();
+  });
 }

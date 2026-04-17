@@ -35,3 +35,15 @@ final List<Upgrade> initialGenerators = [
     benefit: 100,
   ),
 ];
+
+// Passive Generators (The Fleet) for Milestone 4 (or extension)
+final List<Upgrade> initialFleet = [
+  Upgrade(id: 'sloop', name: 'Sloop', baseCost: 50000, benefit: 500),
+  Upgrade(
+    id: 'brigantine',
+    name: 'Brigantine',
+    baseCost: 250000,
+    benefit: 3000,
+  ),
+  Upgrade(id: 'frigate', name: 'Frigate', baseCost: 1000000, benefit: 15000),
+];
