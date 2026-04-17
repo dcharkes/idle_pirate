@@ -98,4 +98,34 @@ void main() {
 
     await box.close();
   });
+
+  test('Production Cycle: updates progress and awards income', () async {
+    final box = await Hive.openBox('test_cycle');
+    await box.put('generators', {'cabin_boy': 1});
+    await box.put('doubloons', 0);
+
+    final controller = GameController(box: box, startTimer: false);
+
+    // Initial progress should be 0
+    expect(controller.generatorsProgress['cabin_boy'] ?? 0.0, 0.0);
+
+    // Tick once (33ms) -> Cabin Boy duration is 2s, so progress should be 0.033 / 2.0 = 0.0165
+    controller.tick();
+    expect(controller.generatorsProgress['cabin_boy'], closeTo(0.0165, 0.001));
+    expect(controller.state.doubloons, 0);
+
+    // Tick 60 more times (total 61 ticks = 2.013 seconds)
+    for (int i = 0; i < 60; i++) {
+      controller.tick();
+    }
+
+    // Progress should reset to 0 and doubloons should be awarded
+    expect(controller.generatorsProgress['cabin_boy'], 0.0);
+    expect(
+      controller.state.doubloons,
+      2,
+    ); // 1 cabin boy * 1 benefit * 2s duration
+
+    await box.close();
+  });
 }

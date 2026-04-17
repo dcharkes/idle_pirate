@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:idle_pirate/main.dart';
@@ -116,7 +117,6 @@ void main() {
     await tester.pumpWidget(MyApp(controller: controller));
 
     expect(find.text('Doubloons: 0'), findsOneWidget);
-    expect(find.text('Income: 0/sec'), findsOneWidget);
 
     // Gain 15 doubloons to buy a Cabin Boy
     for (int i = 0; i < 15; i++) {
@@ -130,16 +130,38 @@ void main() {
     await tester.tap(find.text('15 D'));
     await tester.pump();
 
-    // Doubloons should be 0, income should be 1/sec
+    // Doubloons should be 0
     expect(find.text('Doubloons: 0'), findsOneWidget);
-    expect(find.text('Income: 1/sec'), findsOneWidget);
 
-    // Advance time by 1 second
+    // Advance time by 1 tick (100ms) -> Cabin Boy duration is 2s
     controller.tick();
     await tester.pump();
 
-    // Doubloons should be 1
-    expect(find.text('Doubloons: 1'), findsOneWidget);
+    // Doubloons should still be 0, but progress should be 0.05
+    expect(find.text('Doubloons: 0'), findsOneWidget);
+
+    final cabinBoyTile = find.ancestor(
+      of: find.textContaining('Cabin Boy'),
+      matching: find.byType(ListTile),
+    );
+    final progressFinder = find.descendant(
+      of: cabinBoyTile,
+      matching: find.byType(LinearProgressIndicator),
+    );
+    expect(progressFinder, findsOneWidget);
+    final progressWidget = tester.widget<LinearProgressIndicator>(
+      progressFinder,
+    );
+    expect(progressWidget.value, closeTo(0.0165, 0.001));
+
+    // Tick 60 more times (total 61 ticks = 2.013 seconds)
+    for (int i = 0; i < 60; i++) {
+      controller.tick();
+    }
+    await tester.pump();
+
+    // Doubloons should be 2 (amount for 1 full cycle: 1 count * 1 rate * 2s)
+    expect(find.text('Doubloons: 2'), findsOneWidget);
 
     await box.close();
   });

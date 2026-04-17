@@ -9,6 +9,15 @@ class GameController extends ChangeNotifier {
   final Box _box;
   GameState _state = GameState();
   Timer? _timer;
+  final Map<String, double> _generatorsProgress = {};
+  final Map<String, double> _generatorDurations = {
+    'cabin_boy': 2.0,
+    'gunner': 5.0,
+    'quartermaster': 10.0,
+  };
+
+  Map<String, double> get generatorsProgress => _generatorsProgress;
+  Map<String, double> get generatorDurations => _generatorDurations;
 
   GameController({required this._box, bool startTimer = true}) {
     _loadState();
@@ -66,17 +75,41 @@ class GameController extends ChangeNotifier {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 33), (timer) {
       tick();
     });
   }
 
   void tick() {
-    final income = passiveIncomePerSecond;
-    if (income > 0) {
-      _state = _state.copyWith(doubloons: _state.doubloons + income);
+    bool stateChanged = false;
+
+    for (final generatorId in _state.generators.keys) {
+      final count = _state.generators[generatorId] ?? 0;
+      if (count > 0) {
+        final duration = _generatorDurations[generatorId] ?? 5.0;
+        final currentProgress = _generatorsProgress[generatorId] ?? 0.0;
+        final newProgress = currentProgress + (0.033 / duration);
+
+        if (newProgress >= 1.0) {
+          final generator = initialGenerators.firstWhere(
+            (g) => g.id == generatorId,
+          );
+          final cycleReward = generator.benefit * count * duration;
+          _state = _state.copyWith(
+            doubloons: _state.doubloons + cycleReward.toInt(),
+          );
+          _generatorsProgress[generatorId] = 0.0;
+          stateChanged = true;
+        } else {
+          _generatorsProgress[generatorId] = newProgress;
+        }
+      }
+    }
+
+    notifyListeners();
+
+    if (stateChanged) {
       _saveState();
-      notifyListeners();
     }
   }
 
@@ -84,14 +117,42 @@ class GameController extends ChangeNotifier {
     final lastSaved = _box.get('last_saved') as int?;
     if (lastSaved != null) {
       final now = DateTime.now().millisecondsSinceEpoch;
-      final elapsedSeconds = (now - lastSaved) ~/ 1000;
+      final elapsedSeconds = (now - lastSaved) / 1000.0;
       if (elapsedSeconds > 0) {
-        final income = passiveIncomePerSecond;
-        final offlineEarnings = income * elapsedSeconds;
-        if (offlineEarnings > 0) {
+        int totalOfflineEarnings = 0;
+        bool stateChanged = false;
+
+        for (final generatorId in _state.generators.keys) {
+          final count = _state.generators[generatorId] ?? 0;
+          if (count > 0) {
+            final duration = _generatorDurations[generatorId] ?? 5.0;
+            final currentProgress = _generatorsProgress[generatorId] ?? 0.0;
+
+            final totalElapsedWithCurrentProgress =
+                elapsedSeconds + (currentProgress * duration);
+            final fullCycles = (totalElapsedWithCurrentProgress / duration)
+                .floor();
+            final remainderSeconds = totalElapsedWithCurrentProgress % duration;
+
+            final generator = initialGenerators.firstWhere(
+              (g) => g.id == generatorId,
+            );
+            final cycleReward = generator.benefit * count * duration;
+
+            totalOfflineEarnings += (fullCycles * cycleReward).toInt();
+
+            _generatorsProgress[generatorId] = remainderSeconds / duration;
+            stateChanged = true;
+          }
+        }
+
+        if (totalOfflineEarnings > 0) {
           _state = _state.copyWith(
-            doubloons: _state.doubloons + offlineEarnings,
+            doubloons: _state.doubloons + totalOfflineEarnings,
           );
+        }
+
+        if (stateChanged || totalOfflineEarnings > 0) {
           _saveState();
         }
       }

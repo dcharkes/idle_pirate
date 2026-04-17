@@ -130,10 +130,29 @@ class _GameScreenState extends State<GameScreen> {
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
+                    final duration =
+                        widget.controller.generatorDurations[generator.id] ??
+                        5.0;
+                    final cycleReward = generator.benefit * duration;
+
                     return Card(
                       child: ListTile(
                         title: Text('${generator.name} ($ownedCount)'),
-                        subtitle: Text('+${generator.benefit} doubloons/sec'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '+${cycleReward.toInt()} doubloons every ${duration.toInt()}s',
+                            ),
+                            const SizedBox(height: 4),
+                            LinearProgressIndicator(
+                              value:
+                                  widget.controller.generatorsProgress[generator
+                                      .id] ??
+                                  0.0,
+                            ),
+                          ],
+                        ),
                         trailing: ElevatedButton(
                           onPressed: canAfford
                               ? () => widget.controller.buyUpgrades(

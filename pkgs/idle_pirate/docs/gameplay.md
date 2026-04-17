@@ -12,9 +12,10 @@ At the very beginning, the player has nothing and must do the dirty work themsel
 Clicking gets tiring. The player's goal shifts from manual labor to building a passive income stream.
 * **The Action:** Spending Doubloons to hire a crew.
 * **Passive Generators:** 
-    * **Cabin Boy:** Generates 1 Doubloon per second.
-    * **Gunner:** Generates 15 Doubloons per second.
-    * **Quartermaster:** Generates 100 Doubloons per second.
+    * **Cabin Boy:** Awards 2 Doubloons every 2 seconds (Rate: 1/sec).
+    * **Gunner:** Awards 75 Doubloons every 5 seconds (Rate: 15/sec).
+    * **Quartermaster:** Awards 1000 Doubloons every 10 seconds (Rate: 100/sec).
+* **Visualization:** Each generator type has a filling bar. When the bar fills, the amount is awarded!
 * **The Shift:** The player starts watching the numbers tick up automatically, logging off, and returning to a pile of offline earnings.
 
 ## Phase 3: The Armada (Exponential Synergies)
