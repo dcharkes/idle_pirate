@@ -1,5 +1,7 @@
 import 'package:meta/meta.dart';
 
+// ignore: experimental_member_use
+@RecordUse()
 class GameIcon {
   final String id;
   // ignore: experimental_member_use
