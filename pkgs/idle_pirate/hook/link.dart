@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:data_assets/data_assets.dart';
@@ -10,9 +12,11 @@ void main(List<String> args) async {
     // Fallback to reading recordedUsagesFile manually
     // ignore: experimental_member_use
     final usesUri = input.recordedUsagesFile;
-    
+
     if (usesUri == null) {
-      print('No recorded uses file found. Bailing on treeshaking and including all assets.');
+      print(
+        'No recorded uses file found. Bailing on treeshaking and including all assets.',
+      );
       output.assets.data.addAll(input.assets.data);
       return;
     }
@@ -44,7 +48,9 @@ void main(List<String> args) async {
           ):
             usedIconIds.add(id);
           case _:
-            stderr.writeln('Cannot safely treeshake GameIcon instances, bailing on treeshaking.');
+            stderr.writeln(
+              'Cannot safely treeshake GameIcon instances, bailing on treeshaking.',
+            );
             output.assets.data.addAll(input.assets.data);
             return;
         }
@@ -58,7 +64,7 @@ void main(List<String> args) async {
       final filename = asset.name.split('/').last;
       // Assume filename is like 'doubloon.png' and id is 'doubloon'
       final id = filename.split('.').first;
-      
+
       if (usedIconIds.contains(id)) {
         output.assets.data.add(asset);
       } else {
