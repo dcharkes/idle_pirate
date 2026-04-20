@@ -32,17 +32,21 @@ class _GameScreenState extends State<GameScreen> {
       case 'brigantine':
       case 'frigate':
         return Icons.directions_boat;
+      case 'doubloon':
+        return Icons.monetization_on;
+      case 'chest':
+        return Icons.archive;
       default:
         return Icons.help_outline;
     }
   } // 1, 10, or -1 for Max
 
-  Widget _getImageForId(String id) {
-    final assetPath = 'assets/images/$id.png';
+  Widget _getImageForId(String id, {double size = 40.0}) {
     return Image.asset(
-      assetPath,
-      width: 40,
-      height: 40,
+      'assets/images/$id.png',
+      package: 'idle_pirate',
+      width: size,
+      height: size,
       errorBuilder: (context, error, stackTrace) {
         return Icon(_getIconForId(id));
       },
@@ -66,11 +70,7 @@ class _GameScreenState extends State<GameScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/images/doubloon.png',
-                        width: 30,
-                        height: 30,
-                      ),
+                      _getImageForId('doubloon', size: 30),
                       const SizedBox(width: 8),
                       Text(
                         'Doubloons: ${state.doubloons}',
@@ -111,11 +111,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Image.asset(
-                            'assets/images/chest.png',
-                            width: 40,
-                            height: 40,
-                          ),
+                          _getImageForId('chest'),
                           const SizedBox(width: 8),
                           const Text('Click Chest'),
                         ],
