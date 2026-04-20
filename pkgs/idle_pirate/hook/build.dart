@@ -19,6 +19,9 @@ void main(List<String> args) async {
                 name: 'assets/images/$filename',
                 file: file.uri,
               ),
+              routing: input.config.linkingEnabled
+                  ? ToLinkHook(input.packageName)
+                  : const ToAppBundle(),
             );
           }
         }

@@ -21,6 +21,7 @@ dependencies:
   hooks: ^1.0.2
   data_assets: ^0.19.6
   meta: ^1.11.0
+  record_use: ^0.6.0
 
 dev_dependencies:
   flutter_test:
