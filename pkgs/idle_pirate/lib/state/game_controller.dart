@@ -59,7 +59,7 @@ class GameController extends ChangeNotifier {
     int power = 1; // Base power
     for (final upgradeId in _state.upgrades.keys) {
       final count = _state.upgrades[upgradeId] ?? 0;
-      final upgrade = initialUpgrades.firstWhere((u) => u.id == upgradeId);
+      final upgrade = initialUpgrades.firstWhere((u) => u.id.id == upgradeId);
       power += upgrade.benefit * count;
     }
     return power;
@@ -70,7 +70,7 @@ class GameController extends ChangeNotifier {
     for (final generatorId in _state.generators.keys) {
       final count = _state.generators[generatorId] ?? 0;
       final allGens = [...initialGenerators, ...initialFleet];
-      final generator = allGens.firstWhere((g) => g.id == generatorId);
+      final generator = allGens.firstWhere((g) => g.id.id == generatorId);
       income += generator.benefit * count;
     }
     return income;
@@ -94,7 +94,7 @@ class GameController extends ChangeNotifier {
 
         if (newProgress >= 1.0) {
           final allGens = [...initialGenerators, ...initialFleet];
-          final generator = allGens.firstWhere((g) => g.id == generatorId);
+          final generator = allGens.firstWhere((g) => g.id.id == generatorId);
           final cycleReward = generator.benefit * count * duration;
           _state = _state.copyWith(
             doubloons: _state.doubloons + cycleReward.toInt(),
@@ -136,7 +136,7 @@ class GameController extends ChangeNotifier {
             final remainderSeconds = totalElapsedWithCurrentProgress % duration;
 
             final allGens = [...initialGenerators, ...initialFleet];
-            final generator = allGens.firstWhere((g) => g.id == generatorId);
+            final generator = allGens.firstWhere((g) => g.id.id == generatorId);
             final cycleReward = generator.benefit * count * duration;
 
             totalOfflineEarnings += (fullCycles * cycleReward).toInt();
@@ -174,10 +174,10 @@ class GameController extends ChangeNotifier {
   int getBulkCost(Upgrade upgrade, int count) {
     if (count <= 0) return 0;
     final allGens = [...initialGenerators, ...initialFleet];
-    final isGenerator = allGens.any((g) => g.id == upgrade.id);
+    final isGenerator = allGens.any((g) => g.id.id == upgrade.id.id);
     final currentCount = isGenerator
-        ? (_state.generators[upgrade.id] ?? 0)
-        : (_state.upgrades[upgrade.id] ?? 0);
+        ? (_state.generators[upgrade.id.id] ?? 0)
+        : (_state.upgrades[upgrade.id.id] ?? 0);
     final r = 1.15;
     final cost =
         upgrade.baseCost *
@@ -190,19 +190,19 @@ class GameController extends ChangeNotifier {
     final cost = getBulkCost(upgrade, count);
     if (_state.doubloons >= cost && count > 0) {
       final allGens = [...initialGenerators, ...initialFleet];
-      final isGenerator = allGens.any((g) => g.id == upgrade.id);
+      final isGenerator = allGens.any((g) => g.id.id == upgrade.id.id);
       if (isGenerator) {
-        final currentCount = _state.generators[upgrade.id] ?? 0;
+        final currentCount = _state.generators[upgrade.id.id] ?? 0;
         final newGenerators = Map<String, int>.from(_state.generators);
-        newGenerators[upgrade.id] = currentCount + count;
+        newGenerators[upgrade.id.id] = currentCount + count;
         _state = _state.copyWith(
           doubloons: _state.doubloons - cost,
           generators: newGenerators,
         );
       } else {
-        final currentCount = _state.upgrades[upgrade.id] ?? 0;
+        final currentCount = _state.upgrades[upgrade.id.id] ?? 0;
         final newUpgrades = Map<String, int>.from(_state.upgrades);
-        newUpgrades[upgrade.id] = currentCount + count;
+        newUpgrades[upgrade.id.id] = currentCount + count;
         _state = _state.copyWith(
           doubloons: _state.doubloons - cost,
           upgrades: newUpgrades,
@@ -215,10 +215,10 @@ class GameController extends ChangeNotifier {
 
   int getMaxAffordable(Upgrade upgrade) {
     final allGens = [...initialGenerators, ...initialFleet];
-    final isGenerator = allGens.any((g) => g.id == upgrade.id);
+    final isGenerator = allGens.any((g) => g.id.id == upgrade.id.id);
     final currentCount = isGenerator
-        ? (_state.generators[upgrade.id] ?? 0)
-        : (_state.upgrades[upgrade.id] ?? 0);
+        ? (_state.generators[upgrade.id.id] ?? 0)
+        : (_state.upgrades[upgrade.id.id] ?? 0);
     final c = _state.doubloons;
     final b = upgrade.baseCost;
     final r = 1.15;

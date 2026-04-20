@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../state/game_controller.dart';
 import '../../models/upgrade.dart';
 
@@ -41,14 +42,14 @@ class _GameScreenState extends State<GameScreen> {
     }
   } // 1, 10, or -1 for Max
 
-  Widget _getImageForId(String id, {double size = 40.0}) {
+  Widget _getImageForId(GameIcon id, {double size = 40.0}) {
     return Image.asset(
-      'assets/images/$id.png',
+      'assets/images/${id.id}.png',
       package: 'idle_pirate',
       width: size,
       height: size,
       errorBuilder: (context, error, stackTrace) {
-        return Icon(_getIconForId(id));
+        return Icon(_getIconForId(id.id));
       },
     );
   }
@@ -70,7 +71,7 @@ class _GameScreenState extends State<GameScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _getImageForId('doubloon', size: 30),
+                      _getImageForId(const GameIcon('doubloon'), size: 30),
                       const SizedBox(width: 8),
                       Text(
                         'Doubloons: ${state.doubloons}',
@@ -111,7 +112,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _getImageForId('chest'),
+                          _getImageForId(const GameIcon('chest')),
                           const SizedBox(width: 8),
                           const Text('Click Chest'),
                         ],
@@ -122,7 +123,7 @@ class _GameScreenState extends State<GameScreen> {
                   const Text('Upgrades:'),
                   const SizedBox(height: 8),
                   ...initialUpgrades.map((upgrade) {
-                    final ownedCount = state.upgrades[upgrade.id] ?? 0;
+                    final ownedCount = state.upgrades[upgrade.id.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -162,7 +163,7 @@ class _GameScreenState extends State<GameScreen> {
                   const Text('Crew Members:'),
                   const SizedBox(height: 8),
                   ...initialGenerators.map((generator) {
-                    final ownedCount = state.generators[generator.id] ?? 0;
+                    final ownedCount = state.generators[generator.id.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -184,7 +185,7 @@ class _GameScreenState extends State<GameScreen> {
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
                     final duration =
-                        widget.controller.generatorDurations[generator.id] ??
+                        widget.controller.generatorDurations[generator.id.id] ??
                         5.0;
                     final cycleReward = generator.benefit * duration;
 
@@ -202,6 +203,7 @@ class _GameScreenState extends State<GameScreen> {
                             LinearProgressIndicator(
                               value:
                                   widget.controller.generatorsProgress[generator
+                                      .id
                                       .id] ??
                                   0.0,
                             ),
@@ -223,7 +225,7 @@ class _GameScreenState extends State<GameScreen> {
                   const Text('Fleet:'),
                   const SizedBox(height: 8),
                   ...initialFleet.map((generator) {
-                    final ownedCount = state.generators[generator.id] ?? 0;
+                    final ownedCount = state.generators[generator.id.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -245,7 +247,7 @@ class _GameScreenState extends State<GameScreen> {
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
                     final duration =
-                        widget.controller.generatorDurations[generator.id] ??
+                        widget.controller.generatorDurations[generator.id.id] ??
                         5.0;
                     final cycleReward = generator.benefit * duration;
 
@@ -263,6 +265,7 @@ class _GameScreenState extends State<GameScreen> {
                             LinearProgressIndicator(
                               value:
                                   widget.controller.generatorsProgress[generator
+                                      .id
                                       .id] ??
                                   0.0,
                             ),
