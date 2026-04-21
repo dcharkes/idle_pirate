@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:convert';
 import 'dart:io';
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
@@ -9,22 +8,16 @@ import 'package:record_use/record_use.dart';
 
 void main(List<String> args) async {
   await link(args, (LinkInput input, LinkOutputBuilder output) async {
-    // Fallback to reading recordedUsagesFile manually
     // ignore: experimental_member_use
-    final usesUri = input.recordedUsagesFile;
+    final usages = input.recordedUses;
 
-    if (usesUri == null) {
+    if (usages == null) {
       print(
-        'No recorded uses file found. Bailing on treeshaking and including all assets.',
+        'No recorded uses found. Bailing on treeshaking and including all assets.',
       );
       output.assets.data.addAll(input.assets.data);
       return;
     }
-
-    final usesJson = await File.fromUri(usesUri).readAsString();
-    final usages = Recordings.fromJson(
-      jsonDecode(usesJson) as Map<String, Object?>,
-    );
 
     final usedIconIds = <String>{};
 

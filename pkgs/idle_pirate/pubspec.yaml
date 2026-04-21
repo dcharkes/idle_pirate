@@ -18,7 +18,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  hooks: ^1.0.2
+  hooks: ^1.0.3
   data_assets: ^0.19.6
   meta: ^1.11.0
   record_use: ^0.6.0
