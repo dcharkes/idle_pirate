@@ -42,7 +42,14 @@ class _GameScreenState extends State<GameScreen> {
     }
   } // 1, 10, or -1 for Max
 
+  static const double maxLogicalIconSize = 40.0;
+
   Widget _getImageForId(GameIcon id, {double size = 40.0}) {
+    if (size > maxLogicalIconSize) {
+      throw ArgumentError(
+        'Icon size $size exceeds maximum allowed size $maxLogicalIconSize',
+      );
+    }
     return Image.asset(
       'assets/images/${id.id}.png',
       package: 'idle_pirate',
