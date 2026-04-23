@@ -176,6 +176,72 @@ Ignore sizes in the code and simply generate/keep the maximum needed size for al
 
 ---
 
+## Option 7: Static and Dynamic Icons with Combined RecordUse
+
+Differentiate between static icons (like `doubloon` and `chest` which have a fixed size) and dynamic icons (like those from upgrades, where the size might depend on the context).
+
+We can model this with two classes:
+- `const StaticIcon(@mustBeConst String id, @mustBeConst double size)`
+- `const DynamicIcon(String id, @mustBeConst double size, @mustBeConst String category)`
+
+Both classes are annotated with `@RecordUse`. For upgrades, we use `"upgrade"` as the `category`. This allows us to record that upgrade icons have a specific size.
+
+Furthermore, we can `@RecordUse` the `Upgrade` class itself and mark its `id` field as `@mustBeConst`. By combining the recorded usage of `Upgrade` and `DynamicIcon` (or `StaticIcon`), we can determine the exact size needed for each specific icon in the link hook.
+
+*Note: If the game logic becomes dynamic in the future (e.g., upgrades loaded from a JSON file instead of being Dart `const` objects), the link hook could achieve the same result by reading that JSON file to get the list of active icons for a category. Leaning into categories allows us to get the items from the category in a separate way (currently with `@RecordUse` as well).*
+
+### Code Example
+
+```dart
+@RecordUse()
+final class StaticIcon {
+  final String id;
+  final double size;
+  const StaticIcon(@mustBeConst this.id, @mustBeConst this.size);
+}
+
+@RecordUse()
+final class DynamicIcon {
+  final String id;
+  final double size;
+  final String category;
+  const DynamicIcon(this.id, @mustBeConst this.size, @mustBeConst this.category);
+}
+
+@RecordUse()
+class Upgrade {
+  @mustBeConst
+  final String id;
+  
+  const Upgrade(this.id);
+}
+
+// Usage
+const doubloonIcon = StaticIcon('doubloon', 24);
+const chestIcon = StaticIcon('chest', 48);
+
+const sharperHooks = Upgrade('sharper_hooks');
+
+// In the widget tree (constructed at runtime)
+Widget build(BuildContext context) {
+  final upgrade = sharperHooks; // or from state
+  final icon = DynamicIcon(upgrade.id, 40, 'upgrade');
+  // ...
+}
+```
+
+### Pros
+- **Precise sizing**: Allows recording exact sizes for icons based on their specific usage context.
+- **Tree shaking efficiency**: By combining `Upgrade` usage with icon usage, we can avoid bundling icons for unused upgrades.
+- **Clear modeling**: Distinguishes between fixed-size UI elements and dynamic content icons.
+- **Future-proof**: Leaning into categories makes it easier to transition to dynamic game logic (e.g., reading from a JSON file in the link hook) without changing the core icon modeling.
+
+### Cons
+- **Complexity**: Requires parsing and combining data from multiple recorded classes in the link hook.
+- **Verbosity**: Requires passing more specific types and identifiers.
+
+---
+
 ## Appendix: Logical vs Physical Pixels in Flutter
 
 In Flutter, dimensions like `width` and `height` in `Image.asset` are specified in **logical pixels**.

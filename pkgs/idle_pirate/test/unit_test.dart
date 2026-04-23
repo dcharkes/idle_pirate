@@ -25,7 +25,7 @@ void main() {
     final controller = GameController(box: box, startTimer: false);
 
     final upgrade = Upgrade(
-      id: const GameIcon('test_upgrade'),
+      id: 'test_upgrade',
       name: 'Test',
       baseCost: 10,
       benefit: 1,
@@ -47,7 +47,7 @@ void main() {
 
     final controller = GameController(box: box, startTimer: false);
     final upgrade = Upgrade(
-      id: const GameIcon('test_upgrade'),
+      id: 'test_upgrade',
       name: 'Test',
       baseCost: 10,
       benefit: 1,
@@ -72,9 +72,7 @@ void main() {
     expect(controller.passiveIncomePerSecond, 0);
 
     // Buy a Cabin Boy (id: 'cabin_boy', benefit: 1)
-    final cabinBoy = initialGenerators.firstWhere(
-      (g) => g.id.id == 'cabin_boy',
-    );
+    final cabinBoy = initialGenerators.firstWhere((g) => g.id == 'cabin_boy');
     controller.buyUpgrades(cabinBoy, 1);
 
     expect(controller.passiveIncomePerSecond, 1);

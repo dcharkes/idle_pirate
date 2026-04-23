@@ -19,63 +19,95 @@ void main(List<String> args) async {
       return;
     }
 
-    final usedIconIds = <String>{};
+    final iconSizes = <String, double>{};
 
-    // Find the class ID for GameIcon
-    dynamic gameIconKey;
+    // 1. Process StaticIcon records
+    dynamic staticIconKey;
     for (final key in usages.instances.keys) {
-      if (key.toString().contains('GameIcon')) {
-        gameIconKey = key;
+      if (key.toString().contains('StaticIcon')) {
+        staticIconKey = key;
         break;
       }
     }
-
-    if (gameIconKey != null) {
-      final instances = usages.instances[gameIconKey] ?? [];
+    if (staticIconKey != null) {
+      final instances = usages.instances[staticIconKey] ?? [];
       for (final instance in instances) {
-        switch (instance) {
-          case InstanceConstantReference(
-            instanceConstant: InstanceConstant(
-              fields: {'id': StringConstant(value: final id)},
-            ),
-          ):
-            usedIconIds.add(id);
-          case _:
-            stderr.writeln(
-              'Cannot safely treeshake GameIcon instances, bailing on treeshaking.',
-            );
-            output.assets.data.addAll(input.assets.data);
-            return;
+        if (instance is InstanceConstantReference) {
+          final fields = (instance.instanceConstant as InstanceConstant).fields;
+          final id = (fields['id'] as StringConstant).value;
+          final size = (fields['size'] as DoubleConstant).value;
+          iconSizes[id] = size;
         }
       }
     }
 
-    print('Used icon IDs: $usedIconIds');
+    // 2. Process DynamicIcon records to get category sizes
+    final categorySizes = <String, double>{};
+    dynamic dynamicIconKey;
+    for (final key in usages.instances.keys) {
+      if (key.toString().contains('DynamicIcon')) {
+        dynamicIconKey = key;
+        break;
+      }
+    }
+    if (dynamicIconKey != null) {
+      final instances = usages.instances[dynamicIconKey] ?? [];
+      for (final instance in instances) {
+        if (instance is InstanceCreationReference) {
+          final sizeArg = instance.positionalArguments[1];
+          final categoryArg = instance.positionalArguments[2];
+          if (sizeArg is DoubleConstant && categoryArg is StringConstant) {
+            final size = sizeArg.value;
+            final category = categoryArg.value;
+            categorySizes[category] = size;
+          }
+        }
+      }
+    }
 
-    await _processAssets(input, output, usedIconIds);
+    // 3. Process Upgrade records to know which upgrades are used
+    final usedUpgradeIds = <String>{};
+    dynamic upgradeKey;
+    for (final key in usages.instances.keys) {
+      if (key.toString().contains('Upgrade')) {
+        upgradeKey = key;
+        break;
+      }
+    }
+    if (upgradeKey != null) {
+      final instances = usages.instances[upgradeKey] ?? [];
+      for (final instance in instances) {
+        if (instance is InstanceConstantReference) {
+          final fields = (instance.instanceConstant as InstanceConstant).fields;
+          final id = (fields['id'] as StringConstant).value;
+          usedUpgradeIds.add(id);
+        }
+      }
+    }
+
+    // 4. Combine info: assume all used upgrades are in 'upgrade' category
+    final upgradeSize = categorySizes['upgrade'];
+    if (upgradeSize != null) {
+      for (final id in usedUpgradeIds) {
+        iconSizes[id] = upgradeSize;
+      }
+    }
+
+    print('Icon sizes: $iconSizes');
+
+    await _processAssets(input, output, iconSizes);
   });
 }
 
 Future<void> _processAssets(
   LinkInput input,
   LinkOutputBuilder output,
-  Set<String> usedIconIds,
+  Map<String, double> iconSizes,
 ) async {
-  // Extract maxLogicalIconSize from game_screen.dart
-  final gameScreenFile = File.fromUri(
-    input.packageRoot.resolve('lib/ui/screens/game_screen.dart'),
-  );
-  final content = await gameScreenFile.readAsString();
-  final match = RegExp(r'maxLogicalIconSize\s*=\s*(\d+\.?\d*)').firstMatch(content);
-  if (match == null) {
-    throw StateError('Could not find maxLogicalIconSize in game_screen.dart');
-  }
-  final maxLogicalSize = double.parse(match.group(1)!);
-  final targetSize = (maxLogicalSize * 3.0).toInt();
-  final sizeStr = '${targetSize}x$targetSize';
-
   // Use a known subdirectory of outputDirectoryShared
-  final assetsDir = Directory.fromUri(input.outputDirectoryShared.resolve('icons/'));
+  final assetsDir = Directory.fromUri(
+    input.outputDirectoryShared.resolve('icons/'),
+  );
   if (!assetsDir.existsSync()) {
     assetsDir.createSync(recursive: true);
   }
@@ -84,7 +116,11 @@ Future<void> _processAssets(
     final filename = asset.name.split('/').last;
     final id = filename.split('.').first;
 
-    if (usedIconIds.contains(id)) {
+    if (iconSizes.containsKey(id)) {
+      final logicalSize = iconSizes[id]!;
+      final targetSize = (logicalSize * 3.0).toInt();
+      final sizeStr = '${targetSize}x$targetSize';
+
       final sourceFile = File.fromUri(asset.file);
       final outputFile = File.fromUri(assetsDir.uri.resolve(filename));
 

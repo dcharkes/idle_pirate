@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meta/meta.dart';
 
 import '../../state/game_controller.dart';
 import '../../models/upgrade.dart';
@@ -15,50 +16,8 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   int _selectedAmount = 1;
 
-  IconData _getIconForId(String id) {
-    switch (id) {
-      case 'sharper_hooks':
-        return Icons.fitness_center;
-      case 'better_shovels':
-        return Icons.agriculture;
-      case 'heavy_boots':
-        return Icons.directions_walk;
-      case 'cabin_boy':
-        return Icons.person;
-      case 'gunner':
-        return Icons.security;
-      case 'quartermaster':
-        return Icons.star;
-      case 'sloop':
-      case 'brigantine':
-      case 'frigate':
-        return Icons.directions_boat;
-      case 'doubloon':
-        return Icons.monetization_on;
-      case 'chest':
-        return Icons.archive;
-      default:
-        return Icons.help_outline;
-    }
-  } // 1, 10, or -1 for Max
-
-  static const double maxLogicalIconSize = 40.0;
-
-  Widget _getImageForId(GameIcon id, {double size = 40.0}) {
-    if (size > maxLogicalIconSize) {
-      throw ArgumentError(
-        'Icon size $size exceeds maximum allowed size $maxLogicalIconSize',
-      );
-    }
-    return Image.asset(
-      'assets/images/${id.id}.png',
-      package: 'idle_pirate',
-      width: size,
-      height: size,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(_getIconForId(id.id));
-      },
-    );
+  Widget _getDynamicIcon(String id) {
+    return DynamicIcon(id, 40, 'upgrade').image;
   }
 
   @override
@@ -78,7 +37,7 @@ class _GameScreenState extends State<GameScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _getImageForId(const GameIcon('doubloon'), size: 30),
+                      const StaticIcon('doubloon', 30).image,
                       const SizedBox(width: 8),
                       Text(
                         'Doubloons: ${state.doubloons}',
@@ -119,7 +78,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _getImageForId(const GameIcon('chest')),
+                          const StaticIcon('chest', 40).image,
                           const SizedBox(width: 8),
                           const Text('Click Chest'),
                         ],
@@ -130,7 +89,7 @@ class _GameScreenState extends State<GameScreen> {
                   const Text('Upgrades:'),
                   const SizedBox(height: 8),
                   ...initialUpgrades.map((upgrade) {
-                    final ownedCount = state.upgrades[upgrade.id.id] ?? 0;
+                    final ownedCount = state.upgrades[upgrade.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -151,7 +110,7 @@ class _GameScreenState extends State<GameScreen> {
 
                     return Card(
                       child: ListTile(
-                        leading: _getImageForId(upgrade.id),
+                        leading: _getDynamicIcon(upgrade.id),
                         title: Text('${upgrade.name} ($ownedCount)'),
                         subtitle: Text('+${upgrade.benefit} click power'),
                         trailing: ElevatedButton(
@@ -170,7 +129,7 @@ class _GameScreenState extends State<GameScreen> {
                   const Text('Crew Members:'),
                   const SizedBox(height: 8),
                   ...initialGenerators.map((generator) {
-                    final ownedCount = state.generators[generator.id.id] ?? 0;
+                    final ownedCount = state.generators[generator.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -192,13 +151,13 @@ class _GameScreenState extends State<GameScreen> {
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
                     final duration =
-                        widget.controller.generatorDurations[generator.id.id] ??
+                        widget.controller.generatorDurations[generator.id] ??
                         5.0;
                     final cycleReward = generator.benefit * duration;
 
                     return Card(
                       child: ListTile(
-                        leading: _getImageForId(generator.id),
+                        leading: _getDynamicIcon(generator.id),
                         title: Text('${generator.name} ($ownedCount)'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +169,6 @@ class _GameScreenState extends State<GameScreen> {
                             LinearProgressIndicator(
                               value:
                                   widget.controller.generatorsProgress[generator
-                                      .id
                                       .id] ??
                                   0.0,
                             ),
@@ -232,7 +190,7 @@ class _GameScreenState extends State<GameScreen> {
                   const Text('Fleet:'),
                   const SizedBox(height: 8),
                   ...initialFleet.map((generator) {
-                    final ownedCount = state.generators[generator.id.id] ?? 0;
+                    final ownedCount = state.generators[generator.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -254,13 +212,13 @@ class _GameScreenState extends State<GameScreen> {
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
                     final duration =
-                        widget.controller.generatorDurations[generator.id.id] ??
+                        widget.controller.generatorDurations[generator.id] ??
                         5.0;
                     final cycleReward = generator.benefit * duration;
 
                     return Card(
                       child: ListTile(
-                        leading: _getImageForId(generator.id),
+                        leading: _getDynamicIcon(generator.id),
                         title: Text('${generator.name} ($ownedCount)'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +230,6 @@ class _GameScreenState extends State<GameScreen> {
                             LinearProgressIndicator(
                               value:
                                   widget.controller.generatorsProgress[generator
-                                      .id
                                       .id] ??
                                   0.0,
                             ),
@@ -297,5 +254,79 @@ class _GameScreenState extends State<GameScreen> {
         },
       ),
     );
+  }
+}
+
+// Icon classes moved from models/upgrade.dart
+
+// ignore: experimental_member_use
+@RecordUse()
+final class StaticIcon {
+  final String id;
+  final double size;
+  // ignore: experimental_member_use
+  const StaticIcon(@mustBeConst this.id, @mustBeConst this.size);
+
+  Widget get image => Image.asset(
+    'assets/images/$id.png',
+    package: 'idle_pirate',
+    width: size,
+    height: size,
+    errorBuilder: (context, error, stackTrace) {
+      return Icon(_getIconForId(id));
+    },
+  );
+}
+
+// ignore: experimental_member_use
+@RecordUse()
+final class DynamicIcon {
+  final String id;
+  final double size;
+  final String category;
+  // ignore: experimental_member_use
+  const DynamicIcon(
+    this.id,
+    // ignore: experimental_member_use
+    @mustBeConst this.size,
+    // ignore: experimental_member_use
+    @mustBeConst this.category,
+  );
+
+  Widget get image => Image.asset(
+    'assets/images/$id.png',
+    package: 'idle_pirate',
+    width: size,
+    height: size,
+    errorBuilder: (context, error, stackTrace) {
+      return Icon(_getIconForId(id));
+    },
+  );
+}
+
+IconData _getIconForId(String id) {
+  switch (id) {
+    case 'sharper_hooks':
+      return Icons.fitness_center;
+    case 'better_shovels':
+      return Icons.agriculture;
+    case 'heavy_boots':
+      return Icons.directions_walk;
+    case 'cabin_boy':
+      return Icons.person;
+    case 'gunner':
+      return Icons.security;
+    case 'quartermaster':
+      return Icons.star;
+    case 'sloop':
+    case 'brigantine':
+    case 'frigate':
+      return Icons.directions_boat;
+    case 'doubloon':
+      return Icons.monetization_on;
+    case 'chest':
+      return Icons.archive;
+    default:
+      return Icons.help_outline;
   }
 }
