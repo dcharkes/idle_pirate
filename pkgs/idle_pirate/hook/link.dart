@@ -32,11 +32,27 @@ void main(List<String> args) async {
     // 1. Process StaticIcon records
     final staticInstances = usages.instances[staticIconDef] ?? [];
     for (final instance in staticInstances) {
-      if (instance is InstanceConstantReference) {
-        final fields = (instance.instanceConstant as InstanceConstant).fields;
-        final id = (fields['id'] as StringConstant).value;
-        final size = (fields['size'] as DoubleConstant).value;
-        iconSizes[id] = size;
+      switch (instance) {
+        case InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {
+              'id': StringConstant(value: final id),
+              'size': DoubleConstant(value: final size),
+            },
+          ),
+        ):
+          iconSizes[id] = size;
+        case InstanceCreationReference(
+          positionalArguments: [
+            StringConstant(value: final id),
+            DoubleConstant(value: final size),
+          ],
+        ):
+          iconSizes[id] = size;
+        case _:
+          throw StateError(
+            'Cannot safely parse StaticIcon instance: $instance',
+          );
       }
     }
 
@@ -44,14 +60,28 @@ void main(List<String> args) async {
     final categorySizes = <String, double>{};
     final dynamicInstances = usages.instances[dynamicIconDef] ?? [];
     for (final instance in dynamicInstances) {
-      if (instance is InstanceCreationReference) {
-        final sizeArg = instance.positionalArguments[1];
-        final categoryArg = instance.positionalArguments[2];
-        if (sizeArg is DoubleConstant && categoryArg is StringConstant) {
-          final size = sizeArg.value;
-          final category = categoryArg.value;
+      switch (instance) {
+        case InstanceCreationReference(
+          positionalArguments: [
+            _, // id
+            DoubleConstant(value: final size),
+            StringConstant(value: final category),
+          ],
+        ):
           categorySizes[category] = size;
-        }
+        case InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {
+              'size': DoubleConstant(value: final size),
+              'category': StringConstant(value: final category),
+            },
+          ),
+        ):
+          categorySizes[category] = size;
+        case _:
+          throw StateError(
+            'Cannot safely parse DynamicIcon instance: $instance',
+          );
       }
     }
 
@@ -59,10 +89,19 @@ void main(List<String> args) async {
     final usedUpgradeIds = <String>{};
     final upgradeInstances = usages.instances[upgradeDef] ?? [];
     for (final instance in upgradeInstances) {
-      if (instance is InstanceConstantReference) {
-        final fields = (instance.instanceConstant as InstanceConstant).fields;
-        final id = (fields['id'] as StringConstant).value;
-        usedUpgradeIds.add(id);
+      switch (instance) {
+        case InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {'id': StringConstant(value: final id)},
+          ),
+        ):
+          usedUpgradeIds.add(id);
+        case InstanceCreationReference(
+          namedArguments: {'id': StringConstant(value: final id)},
+        ):
+          usedUpgradeIds.add(id);
+        case _:
+          throw StateError('Cannot safely parse Upgrade instance: $instance');
       }
     }
 
