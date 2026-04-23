@@ -21,67 +21,48 @@ void main(List<String> args) async {
 
     final iconSizes = <String, double>{};
 
+    // Construct definitions for lookup
+    final uiLib = Library('package:idle_pirate/ui/screens/game_screen.dart');
+    final modelsLib = Library('package:idle_pirate/models/upgrade.dart');
+
+    final staticIconDef = Class('StaticIcon', uiLib);
+    final dynamicIconDef = Class('DynamicIcon', uiLib);
+    final upgradeDef = Class('Upgrade', modelsLib);
+
     // 1. Process StaticIcon records
-    dynamic staticIconKey;
-    for (final key in usages.instances.keys) {
-      if (key.toString().contains('StaticIcon')) {
-        staticIconKey = key;
-        break;
-      }
-    }
-    if (staticIconKey != null) {
-      final instances = usages.instances[staticIconKey] ?? [];
-      for (final instance in instances) {
-        if (instance is InstanceConstantReference) {
-          final fields = (instance.instanceConstant as InstanceConstant).fields;
-          final id = (fields['id'] as StringConstant).value;
-          final size = (fields['size'] as DoubleConstant).value;
-          iconSizes[id] = size;
-        }
+    final staticInstances = usages.instances[staticIconDef] ?? [];
+    for (final instance in staticInstances) {
+      if (instance is InstanceConstantReference) {
+        final fields = (instance.instanceConstant as InstanceConstant).fields;
+        final id = (fields['id'] as StringConstant).value;
+        final size = (fields['size'] as DoubleConstant).value;
+        iconSizes[id] = size;
       }
     }
 
     // 2. Process DynamicIcon records to get category sizes
     final categorySizes = <String, double>{};
-    dynamic dynamicIconKey;
-    for (final key in usages.instances.keys) {
-      if (key.toString().contains('DynamicIcon')) {
-        dynamicIconKey = key;
-        break;
-      }
-    }
-    if (dynamicIconKey != null) {
-      final instances = usages.instances[dynamicIconKey] ?? [];
-      for (final instance in instances) {
-        if (instance is InstanceCreationReference) {
-          final sizeArg = instance.positionalArguments[1];
-          final categoryArg = instance.positionalArguments[2];
-          if (sizeArg is DoubleConstant && categoryArg is StringConstant) {
-            final size = sizeArg.value;
-            final category = categoryArg.value;
-            categorySizes[category] = size;
-          }
+    final dynamicInstances = usages.instances[dynamicIconDef] ?? [];
+    for (final instance in dynamicInstances) {
+      if (instance is InstanceCreationReference) {
+        final sizeArg = instance.positionalArguments[1];
+        final categoryArg = instance.positionalArguments[2];
+        if (sizeArg is DoubleConstant && categoryArg is StringConstant) {
+          final size = sizeArg.value;
+          final category = categoryArg.value;
+          categorySizes[category] = size;
         }
       }
     }
 
     // 3. Process Upgrade records to know which upgrades are used
     final usedUpgradeIds = <String>{};
-    dynamic upgradeKey;
-    for (final key in usages.instances.keys) {
-      if (key.toString().contains('Upgrade')) {
-        upgradeKey = key;
-        break;
-      }
-    }
-    if (upgradeKey != null) {
-      final instances = usages.instances[upgradeKey] ?? [];
-      for (final instance in instances) {
-        if (instance is InstanceConstantReference) {
-          final fields = (instance.instanceConstant as InstanceConstant).fields;
-          final id = (fields['id'] as StringConstant).value;
-          usedUpgradeIds.add(id);
-        }
+    final upgradeInstances = usages.instances[upgradeDef] ?? [];
+    for (final instance in upgradeInstances) {
+      if (instance is InstanceConstantReference) {
+        final fields = (instance.instanceConstant as InstanceConstant).fields;
+        final id = (fields['id'] as StringConstant).value;
+        usedUpgradeIds.add(id);
       }
     }
 
