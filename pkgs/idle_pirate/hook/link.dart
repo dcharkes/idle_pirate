@@ -28,6 +28,7 @@ void main(List<String> args) async {
     final staticIconDef = Class('StaticIcon', uiLib);
     final dynamicIconDef = Class('DynamicIcon', uiLib);
     final upgradeDef = Class('Upgrade', modelsLib);
+    final soundDef = Class('Sound', modelsLib);
 
     // 1. Process StaticIcon records
     final staticInstances = usages.instances[staticIconDef] ?? [];
@@ -105,6 +106,29 @@ void main(List<String> args) async {
       }
     }
 
+    // 3.5 Process Sound records to know which sounds are used
+    final usedSoundIds = <String>{};
+    final soundInstances = usages.instances[soundDef] ?? [];
+    for (final instance in soundInstances) {
+      switch (instance) {
+        case InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {'id': StringConstant(value: final id)},
+          ),
+        ):
+          usedSoundIds.add(id);
+        case InstanceCreationReference(
+          positionalArguments: [StringConstant(value: final id)],
+        ):
+          usedSoundIds.add(id);
+        case InstanceCreationReference():
+          // Ignore non-const calls (e.g. from _extractAudioAssets)
+          break;
+        case _:
+          throw StateError('Cannot safely parse Sound instance: $instance');
+      }
+    }
+
     // 4. Combine info: assume all used upgrades are in 'upgrade' category
     final upgradeSize = categorySizes['upgrade'];
     if (upgradeSize != null) {
@@ -114,8 +138,9 @@ void main(List<String> args) async {
     }
 
     print('Icon sizes: $iconSizes');
+    print('Used sound IDs: $usedSoundIds');
 
-    await _processAssets(input, output, iconSizes);
+    await _processAssets(input, output, iconSizes, usedSoundIds);
   });
 }
 
@@ -123,6 +148,7 @@ Future<void> _processAssets(
   LinkInput input,
   LinkOutputBuilder output,
   Map<String, double> iconSizes,
+  Set<String> usedSoundIds,
 ) async {
   // Use a known subdirectory of outputDirectoryShared
   final assetsDir = Directory.fromUri(
@@ -136,34 +162,46 @@ Future<void> _processAssets(
     final filename = asset.name.split('/').last;
     final id = filename.split('.').first;
 
-    if (iconSizes.containsKey(id)) {
-      final logicalSize = iconSizes[id]!;
-      final targetSize = (logicalSize * 3.0).toInt();
-      final sizeStr = '${targetSize}x$targetSize';
+    if (asset.name.startsWith('assets/images/')) {
+      if (iconSizes.containsKey(id)) {
+        final logicalSize = iconSizes[id]!;
+        final targetSize = (logicalSize * 3.0).toInt();
+        final sizeStr = '${targetSize}x$targetSize';
 
-      final sourceFile = File.fromUri(asset.file);
-      final outputFile = File.fromUri(assetsDir.uri.resolve(filename));
+        final sourceFile = File.fromUri(asset.file);
+        final outputFile = File.fromUri(assetsDir.uri.resolve(filename));
 
-      if (await _shouldResize(sourceFile, outputFile)) {
-        final success = await _resizeIcon(sourceFile, outputFile, sizeStr);
-        if (!success) {
-          // Fallback to original asset if resize fails
-          output.assets.data.add(asset);
-          continue;
+        if (await _shouldResize(sourceFile, outputFile)) {
+          final success = await _resizeIcon(sourceFile, outputFile, sizeStr);
+          if (!success) {
+            // Fallback to original asset if resize fails
+            output.assets.data.add(asset);
+            continue;
+          }
+        } else {
+          print('Asset ${asset.name} is up to date, skipping resize.');
         }
-      } else {
-        print('Asset ${asset.name} is up to date, skipping resize.');
-      }
 
-      output.assets.data.add(
-        DataAsset(
-          package: asset.package,
-          name: asset.name,
-          file: outputFile.uri,
-        ),
-      );
+        output.assets.data.add(
+          DataAsset(
+            package: asset.package,
+            name: asset.name,
+            file: outputFile.uri,
+          ),
+        );
+      } else {
+        print('Filtering out icon: ${asset.name}');
+      }
+    } else if (asset.name.startsWith('assets/sounds/')) {
+      if (usedSoundIds.contains(id)) {
+        print('Keeping sound: ${asset.name}');
+        output.assets.data.add(asset);
+      } else {
+        print('Filtering out sound: ${asset.name}');
+      }
     } else {
-      print('Filtering out asset: ${asset.name}');
+      print('Unknown asset type: ${asset.name}');
+      output.assets.data.add(asset);
     }
   }
 }

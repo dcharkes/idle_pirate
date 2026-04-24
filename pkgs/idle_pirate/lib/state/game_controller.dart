@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
+
 import 'package:hive/hive.dart';
 import 'package:mini_audio/mini_audio.dart';
 import '../models/game_state.dart';
@@ -25,7 +25,11 @@ class GameController extends ChangeNotifier {
   Map<String, double> get generatorsProgress => _generatorsProgress;
   Map<String, double> get generatorDurations => _generatorDurations;
 
-  GameController({required this._box, bool startTimer = true, bool enableAudio = true}) {
+  GameController({
+    required this._box,
+    bool startTimer = true,
+    bool enableAudio = true,
+  }) {
     _loadState();
     if (startTimer) {
       _startTimer();
@@ -48,45 +52,48 @@ class GameController extends ChangeNotifier {
   }
 
   Future<void> _extractAudioAssets() async {
-    final sounds = [
-      'boot.mp3',
-      'coin.mp3',
-      'gunner.mp3',
-      'hook.mp3',
-      'raise the sails.mp3',
-      'shiver me timbers.mp3',
-      'shovel.mp3',
-      'yarr.mp3',
+    final soundIds = [
+      'boot',
+      'coin',
+      'gunner',
+      'hook',
+      'raise the sails',
+      'shiver me timbers',
+      'shovel',
+      'yarr',
     ];
 
     final tempDir = Directory.systemTemp;
 
-    for (final sound in sounds) {
-      final file = File('${tempDir.path}/$sound');
+    for (final id in soundIds) {
+      final file = File('${tempDir.path}/$id.mp3');
       if (!file.existsSync()) {
         try {
-          // ignore: experimental_member_use
-          final data = await rootBundle.load('assets/sounds/$sound');
-          final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+          final sound = Sound(id);
+          final data = await sound.load();
+          final bytes = data.buffer.asUint8List(
+            data.offsetInBytes,
+            data.lengthInBytes,
+          );
           await file.writeAsBytes(bytes);
         } catch (e) {
           // ignore: avoid_print
-          print('Failed to load asset $sound: $e');
+          print('Asset $id not found or filtered out: $e');
         }
       }
     }
   }
 
-  void _playSound(String soundName) {
+  void _playSound(Sound sound) {
     if (_audio == null) return;
     final tempDir = Directory.systemTemp;
-    final file = File('${tempDir.path}/$soundName.mp3');
+    final file = File('${tempDir.path}/${sound.id}.mp3');
     if (file.existsSync()) {
       try {
         _audio!.playSound(file.path);
       } catch (e) {
         // ignore: avoid_print
-        print('Failed to play sound $soundName: $e');
+        print('Failed to play sound ${sound.id}: $e');
       }
     }
   }
@@ -163,7 +170,7 @@ class GameController extends ChangeNotifier {
           );
           _generatorsProgress[generatorId] = 0.0;
           stateChanged = true;
-          _playSound('coin');
+          _playSound(const Sound('coin'));
         } else {
           _generatorsProgress[generatorId] = newProgress;
         }
@@ -230,7 +237,7 @@ class GameController extends ChangeNotifier {
 
   void clickChest() {
     _state = _state.copyWith(doubloons: _state.doubloons + clickPower);
-    _playSound('coin');
+    _playSound(const Sound('coin'));
     _saveState();
     notifyListeners();
   }
@@ -272,34 +279,34 @@ class GameController extends ChangeNotifier {
           upgrades: newUpgrades,
         );
       }
-      
+
       // Play sound based on upgrade ID
       switch (upgrade.id) {
         case 'sharper_hooks':
-          _playSound('hook');
+          _playSound(const Sound('hook'));
           break;
         case 'better_shovels':
-          _playSound('shovel');
+          _playSound(const Sound('shovel'));
           break;
         case 'heavy_boots':
-          _playSound('boot');
+          _playSound(const Sound('boot'));
           break;
         case 'gunner':
-          _playSound('gunner');
+          _playSound(const Sound('gunner'));
           break;
         case 'cabin_boy':
-          _playSound('yarr');
+          _playSound(const Sound('yarr'));
           break;
         case 'quartermaster':
-          _playSound('shiver me timbers');
+          _playSound(const Sound('shiver me timbers'));
           break;
         case 'sloop':
         case 'brigantine':
         case 'frigate':
-          _playSound('raise the sails');
+          _playSound(const Sound('raise the sails'));
           break;
         default:
-          _playSound('coin');
+          _playSound(const Sound('coin'));
       }
 
       _saveState();

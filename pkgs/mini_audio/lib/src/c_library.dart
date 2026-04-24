@@ -10,5 +10,7 @@ import 'package:native_toolchain_c/native_toolchain_c.dart';
 final cLibrary = CLibrary(
   name: 'miniaudio',
   assetName: 'src/third_party/miniaudio.g.dart',
-  sources: ['third_party/miniaudio.c'],
+  sources: ['third_party/miniaudio.m'],
+  frameworks: ['AVFoundation', 'AudioToolbox', 'Foundation'],
+  flags: ['-framework', 'AVFoundation', '-framework', 'AudioToolbox', '-framework', 'Foundation'],
 );

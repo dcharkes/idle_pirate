@@ -26,6 +26,28 @@ void main(List<String> args) async {
           }
         }
       }
+
+      final soundsDir = Directory.fromUri(
+        input.packageRoot.resolve('assets/sounds'),
+      );
+      if (soundsDir.existsSync()) {
+        final files = soundsDir.listSync();
+        for (final file in files) {
+          if (file is File) {
+            final filename = file.uri.pathSegments.last;
+            output.assets.data.add(
+              DataAsset(
+                package: input.packageName,
+                name: 'assets/sounds/$filename',
+                file: file.uri,
+              ),
+              routing: input.config.linkingEnabled
+                  ? ToLinkHook(input.packageName)
+                  : const ToAppBundle(),
+            );
+          }
+        }
+      }
     }
   });
 }

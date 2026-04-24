@@ -22,7 +22,11 @@ void main() {
 
   test('Formula: getBulkCost calculates correctly', () async {
     final box = await Hive.openBox('test_cost');
-    final controller = GameController(box: box, startTimer: false, enableAudio: false);
+    final controller = GameController(
+      box: box,
+      startTimer: false,
+      enableAudio: false,
+    );
 
     final upgrade = Upgrade(
       id: 'test_upgrade',
@@ -45,7 +49,11 @@ void main() {
     final box = await Hive.openBox('test_max');
     await box.put('doubloons', 10);
 
-    final controller = GameController(box: box, startTimer: false, enableAudio: false);
+    final controller = GameController(
+      box: box,
+      startTimer: false,
+      enableAudio: false,
+    );
     final upgrade = Upgrade(
       id: 'test_upgrade',
       name: 'Test',
@@ -57,7 +65,11 @@ void main() {
 
     // With 203 doubloons, max afford should be 10
     await box.put('doubloons', 204);
-    final controller2 = GameController(box: box, startTimer: false, enableAudio: false);
+    final controller2 = GameController(
+      box: box,
+      startTimer: false,
+      enableAudio: false,
+    );
     expect(controller2.getMaxAffordable(upgrade), 10);
 
     await box.close();
@@ -66,7 +78,11 @@ void main() {
   test('Passive Income: calculates correctly', () async {
     final box = await Hive.openBox('test_passive');
     await box.put('doubloons', 100);
-    final controller = GameController(box: box, startTimer: false, enableAudio: false);
+    final controller = GameController(
+      box: box,
+      startTimer: false,
+      enableAudio: false,
+    );
 
     // Initial income should be 0
     expect(controller.passiveIncomePerSecond, 0);
@@ -91,7 +107,11 @@ void main() {
     final now = DateTime.now().millisecondsSinceEpoch;
     await box.put('last_saved', now - 10000);
 
-    final controller = GameController(box: box, startTimer: false, enableAudio: false);
+    final controller = GameController(
+      box: box,
+      startTimer: false,
+      enableAudio: false,
+    );
 
     // Should have earned 10 doubloons (1/sec * 10 sec)
     expect(controller.state.doubloons, 10);
@@ -104,7 +124,11 @@ void main() {
     await box.put('generators', {'cabin_boy': 1});
     await box.put('doubloons', 0);
 
-    final controller = GameController(box: box, startTimer: false, enableAudio: false);
+    final controller = GameController(
+      box: box,
+      startTimer: false,
+      enableAudio: false,
+    );
 
     // Initial progress should be 0
     expect(controller.generatorsProgress['cabin_boy'] ?? 0.0, 0.0);
@@ -134,7 +158,11 @@ void main() {
     await box.put('generators', {'sloop': 1});
     await box.put('doubloons', 0);
 
-    final controller = GameController(box: box, startTimer: false, enableAudio: false);
+    final controller = GameController(
+      box: box,
+      startTimer: false,
+      enableAudio: false,
+    );
 
     // Initial progress should be 0
     expect(controller.generatorsProgress['sloop'] ?? 0.0, 0.0);
