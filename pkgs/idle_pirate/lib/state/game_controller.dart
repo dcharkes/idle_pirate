@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:hive/hive.dart';
+import 'package:mini_audio/mini_audio.dart';
 import '../models/game_state.dart';
 import '../models/upgrade.dart';
 
@@ -22,10 +25,69 @@ class GameController extends ChangeNotifier {
   Map<String, double> get generatorsProgress => _generatorsProgress;
   Map<String, double> get generatorDurations => _generatorDurations;
 
-  GameController({required this._box, bool startTimer = true}) {
+  GameController({required this._box, bool startTimer = true, bool enableAudio = true}) {
     _loadState();
     if (startTimer) {
       _startTimer();
+    }
+    if (enableAudio) {
+      _initializeAudio();
+    }
+  }
+
+  MiniAudio? _audio;
+
+  void _initializeAudio() async {
+    try {
+      _audio = MiniAudio();
+      await _extractAudioAssets();
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to initialize audio: $e');
+    }
+  }
+
+  Future<void> _extractAudioAssets() async {
+    final sounds = [
+      'boot.mp3',
+      'coin.mp3',
+      'gunner.mp3',
+      'hook.mp3',
+      'raise the sails.mp3',
+      'shiver me timbers.mp3',
+      'shovel.mp3',
+      'yarr.mp3',
+    ];
+
+    final tempDir = Directory.systemTemp;
+
+    for (final sound in sounds) {
+      final file = File('${tempDir.path}/$sound');
+      if (!file.existsSync()) {
+        try {
+          // ignore: experimental_member_use
+          final data = await rootBundle.load('assets/sounds/$sound');
+          final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+          await file.writeAsBytes(bytes);
+        } catch (e) {
+          // ignore: avoid_print
+          print('Failed to load asset $sound: $e');
+        }
+      }
+    }
+  }
+
+  void _playSound(String soundName) {
+    if (_audio == null) return;
+    final tempDir = Directory.systemTemp;
+    final file = File('${tempDir.path}/$soundName.mp3');
+    if (file.existsSync()) {
+      try {
+        _audio!.playSound(file.path);
+      } catch (e) {
+        // ignore: avoid_print
+        print('Failed to play sound $soundName: $e');
+      }
     }
   }
 
@@ -101,6 +163,7 @@ class GameController extends ChangeNotifier {
           );
           _generatorsProgress[generatorId] = 0.0;
           stateChanged = true;
+          _playSound('coin');
         } else {
           _generatorsProgress[generatorId] = newProgress;
         }
@@ -167,6 +230,7 @@ class GameController extends ChangeNotifier {
 
   void clickChest() {
     _state = _state.copyWith(doubloons: _state.doubloons + clickPower);
+    _playSound('coin');
     _saveState();
     notifyListeners();
   }
@@ -208,6 +272,36 @@ class GameController extends ChangeNotifier {
           upgrades: newUpgrades,
         );
       }
+      
+      // Play sound based on upgrade ID
+      switch (upgrade.id) {
+        case 'sharper_hooks':
+          _playSound('hook');
+          break;
+        case 'better_shovels':
+          _playSound('shovel');
+          break;
+        case 'heavy_boots':
+          _playSound('boot');
+          break;
+        case 'gunner':
+          _playSound('gunner');
+          break;
+        case 'cabin_boy':
+          _playSound('yarr');
+          break;
+        case 'quartermaster':
+          _playSound('shiver me timbers');
+          break;
+        case 'sloop':
+        case 'brigantine':
+        case 'frigate':
+          _playSound('raise the sails');
+          break;
+        default:
+          _playSound('coin');
+      }
+
       _saveState();
       notifyListeners();
     }

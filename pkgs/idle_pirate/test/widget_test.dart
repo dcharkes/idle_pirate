@@ -29,7 +29,7 @@ void main() {
   ) async {
     // 1. Setup the state and controller
     final box = FakeBox();
-    final controller = GameController(box: box, startTimer: false);
+    final controller = GameController(box: box, startTimer: false, enableAudio: false);
 
     // 2. Pump the widget
     await tester.pumpWidget(MyApp(controller: controller));
@@ -49,7 +49,7 @@ void main() {
 
   testWidgets('Playing through game simulation', (WidgetTester tester) async {
     final box = FakeBox();
-    final controller = GameController(box: box, startTimer: false);
+    final controller = GameController(box: box, startTimer: false, enableAudio: false);
     await tester.pumpWidget(MyApp(controller: controller));
 
     expect(find.text('Doubloons: 0'), findsOneWidget);
@@ -78,7 +78,7 @@ void main() {
   });
   testWidgets('Max purchase refined behavior', (WidgetTester tester) async {
     final box = FakeBox();
-    final controller = GameController(box: box, startTimer: false);
+    final controller = GameController(box: box, startTimer: false, enableAudio: false);
     await tester.pumpWidget(MyApp(controller: controller));
 
     expect(find.text('Doubloons: 0'), findsOneWidget);
@@ -113,7 +113,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final box = FakeBox();
-    final controller = GameController(box: box, startTimer: false);
+    final controller = GameController(box: box, startTimer: false, enableAudio: false);
     await tester.pumpWidget(MyApp(controller: controller));
 
     expect(find.text('Doubloons: 0'), findsOneWidget);
@@ -171,7 +171,7 @@ void main() {
   ) async {
     final box = FakeBox();
     await box.put('doubloons', 50000);
-    final controller = GameController(box: box, startTimer: false);
+    final controller = GameController(box: box, startTimer: false, enableAudio: false);
     await tester.pumpWidget(MyApp(controller: controller));
 
     expect(find.text('Doubloons: 50000'), findsOneWidget);

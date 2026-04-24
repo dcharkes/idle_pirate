@@ -15,6 +15,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  mini_audio:
+    path: ../mini_audio
+
   cupertino_icons: ^1.0.8
   hive: ^2.2.3
   hive_flutter: ^1.1.0
@@ -30,5 +33,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/sounds/
 
 
