@@ -5,4 +5,5 @@ environment:
 
 workspace:
   - pkgs/idle_pirate
+  - pkgs/mini_audio
 
