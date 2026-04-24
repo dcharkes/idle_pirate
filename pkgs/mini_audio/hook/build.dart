@@ -9,14 +9,9 @@ import 'package:mini_audio/src/c_library.dart';
 void main(List<String> args) async {
   await build(args, (input, output) async {
     if (input.config.buildCodeAssets) {
-      await cLibrary.build(
+      await getCLibrary(input.config.code.targetOS).build(
         input: input,
         output: output,
-        defines: {
-          if (input.config.code.targetOS == OS.windows)
-            // Ensure symbols are exported in dll.
-            'MA_API': '__declspec(dllexport)',
-        },
       );
     }
   });

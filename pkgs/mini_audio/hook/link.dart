@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:code_assets/code_assets.dart';
 import 'package:hooks/hooks.dart';
 import 'package:mini_audio/src/c_library.dart';
 import 'package:mini_audio/src/third_party/record_use_mapping.dart';
@@ -10,7 +11,7 @@ import 'package:record_use/record_use.dart';
 
 void main(List<String> arguments) async {
   await link(arguments, (input, output) async {
-    await cLibrary.link(
+    await getCLibrary(input.config.code.targetOS).link(
       input: input,
       output: output,
       linkerOptions: LinkerOptions.treeshake(
