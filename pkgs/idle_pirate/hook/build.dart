@@ -48,6 +48,30 @@ void main(List<String> args) async {
           }
         }
       }
+
+      final translationsDir = Directory.fromUri(
+        input.packageRoot.resolve('assets/translations'),
+      );
+      if (translationsDir.existsSync()) {
+        output.dependencies.add(translationsDir.uri);
+        final files = translationsDir.listSync();
+        for (final file in files) {
+          if (file is File) {
+            output.dependencies.add(file.uri);
+            final filename = file.uri.pathSegments.last;
+            output.assets.data.add(
+              DataAsset(
+                package: input.packageName,
+                name: 'assets/translations/$filename',
+                file: file.uri,
+              ),
+              routing: input.config.linkingEnabled
+                  ? ToLinkHook(input.packageName)
+                  : const ToAppBundle(),
+            );
+          }
+        }
+      }
     }
   });
 }

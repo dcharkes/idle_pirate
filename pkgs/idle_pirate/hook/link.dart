@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
@@ -29,6 +30,8 @@ void main(List<String> args) async {
     final dynamicIconDef = Class('DynamicIcon', uiLib);
     final upgradeDef = Class('Upgrade', modelsLib);
     final soundDef = Class('Sound', modelsLib);
+    final translationsLib = Library('package:idle_pirate/state/translations.dart');
+    final translateMethod = Method('translate', translationsLib);
 
     // 1. Process StaticIcon records
     final staticInstances = usages.instances[staticIconDef] ?? [];
@@ -129,6 +132,16 @@ void main(List<String> args) async {
       }
     }
 
+    // 3.6 Process translate calls to know which keys are used
+    final usedTranslationKeys = <String>{};
+    final translateCalls = usages.calls[translateMethod] ?? [];
+    for (final call in translateCalls) {
+      final positional = (call as dynamic).positionalArguments;
+      if (positional.isNotEmpty && positional[0] is StringConstant) {
+        usedTranslationKeys.add((positional[0] as StringConstant).value);
+      }
+    }
+
     // 4. Combine info: assume all used upgrades are in 'upgrade' category
     final upgradeSize = categorySizes['upgrade'];
     if (upgradeSize != null) {
@@ -140,7 +153,7 @@ void main(List<String> args) async {
     print('Icon sizes: $iconSizes');
     print('Used sound IDs: $usedSoundIds');
 
-    await _processAssets(input, output, iconSizes, usedSoundIds);
+    await _processAssets(input, output, iconSizes, usedSoundIds, usedTranslationKeys, usedUpgradeIds);
   });
 }
 
@@ -149,6 +162,8 @@ Future<void> _processAssets(
   LinkOutputBuilder output,
   Map<String, double> iconSizes,
   Set<String> usedSoundIds,
+  Set<String> usedTranslationKeys,
+  Set<String> usedUpgradeIds,
 ) async {
   // Use a known subdirectory of outputDirectoryShared
   final assetsDir = Directory.fromUri(
@@ -198,6 +213,42 @@ Future<void> _processAssets(
         output.assets.data.add(asset);
       } else {
         print('Filtering out sound: ${asset.name}');
+      }
+    } else if (asset.name.startsWith('assets/translations/')) {
+      final file = File.fromUri(asset.file);
+      if (file.existsSync()) {
+        output.dependencies.add(file.uri);
+        final jsonStr = await file.readAsString();
+        final jsonMap = Map<String, String>.from(json.decode(jsonStr));
+        final filteredMap = <String, String>{};
+        
+        for (final entry in jsonMap.entries) {
+          final key = entry.key;
+          final value = entry.value;
+          
+          if (usedTranslationKeys.contains(key)) {
+            filteredMap[key] = value;
+          } else if (usedUpgradeIds.contains(key)) {
+            filteredMap[key] = value;
+          } else {
+            print('Filtering out unused translation key: $key');
+          }
+        }
+        
+        final filteredJsonStr = json.encode(filteredMap);
+        
+        final outputFile = File.fromUri(assetsDir.uri.resolve(filename));
+        await outputFile.writeAsString(filteredJsonStr);
+        
+        print('Filtered translation file: ${asset.name}, kept ${filteredMap.length}/${jsonMap.length} keys.');
+        
+        output.assets.data.add(
+          DataAsset(
+            package: asset.package,
+            name: asset.name,
+            file: outputFile.uri,
+          ),
+        );
       }
     } else {
       print('Unknown asset type: ${asset.name}');

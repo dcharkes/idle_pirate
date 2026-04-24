@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 
 import '../../state/game_controller.dart';
 import '../../models/upgrade.dart';
+import '../../state/translations.dart';
 
 class GameScreen extends StatefulWidget {
   final GameController controller;
@@ -23,7 +24,29 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Idle Pirate')),
+      appBar: AppBar(
+        title: Text(translate('app_title')),
+        actions: [
+          DropdownButton<String>(
+            value: currentLanguage,
+            items: const [
+              DropdownMenuItem(value: 'en', child: Text('🇺🇸 EN')),
+              DropdownMenuItem(value: 'pirate_en', child: Text('🏴‍☠️ EN')),
+              DropdownMenuItem(value: 'es', child: Text('🇪🇸 ES')),
+              DropdownMenuItem(value: 'pirate_es', child: Text('🏴‍☠️ ES')),
+              DropdownMenuItem(value: 'nl', child: Text('🇳🇱 NL')),
+              DropdownMenuItem(value: 'pirate_nl', child: Text('🏴‍☠️ NL')),
+            ],
+            onChanged: (String? newValue) async {
+              if (newValue != null) {
+                await loadTranslations(newValue);
+                setState(() {});
+              }
+            },
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
       body: ListenableBuilder(
         listenable: widget.controller,
         builder: (context, child) {
@@ -40,28 +63,28 @@ class _GameScreenState extends State<GameScreen> {
                       const StaticIcon('doubloon', 30).image,
                       const SizedBox(width: 8),
                       Text(
-                        'Doubloons: ${state.doubloons}',
+                        '${translate('doubloons')}: ${state.doubloons}',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                     ],
                   ),
                   Text(
-                    'Click Power: ${widget.controller.clickPower}',
+                    '${translate('click_power')}: ${widget.controller.clickPower}',
                     style: Theme.of(context).textTheme.titleMedium,
                     textAlign: TextAlign.center,
                   ),
                   Text(
-                    'Income: ${widget.controller.passiveIncomePerSecond}/sec',
+                    'Income: ${widget.controller.passiveIncomePerSecond} ${translate('per_second')}',
                     style: Theme.of(context).textTheme.titleMedium,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   // Purchase Amount Selector
                   SegmentedButton<int>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(value: 1, label: Text('x1')),
                       ButtonSegment(value: 10, label: Text('x10')),
-                      ButtonSegment(value: -1, label: Text('Max')),
+                      ButtonSegment(value: -1, label: Text(translate('max'))),
                     ],
                     selected: {_selectedAmount},
                     onSelectionChanged: (Set<int> newSelection) {
@@ -80,13 +103,13 @@ class _GameScreenState extends State<GameScreen> {
                         children: [
                           const StaticIcon('chest', 40).image,
                           const SizedBox(width: 8),
-                          const Text('Click Chest'),
+                          Text(translate('click_chest')),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const Text('Upgrades:'),
+                  Text(translate('upgrades')),
                   const SizedBox(height: 8),
                   ...initialUpgrades.map((upgrade) {
                     final ownedCount = state.upgrades[upgrade.id] ?? 0;
@@ -111,7 +134,7 @@ class _GameScreenState extends State<GameScreen> {
                     return Card(
                       child: ListTile(
                         leading: _getDynamicIcon(upgrade.id),
-                        title: Text('${upgrade.name} ($ownedCount)'),
+                        title: Text('${translateDynamic(upgrade.id, 'upgrade')} ($ownedCount)'),
                         subtitle: Text('+${upgrade.benefit} click power'),
                         trailing: ElevatedButton(
                           onPressed: canAfford
@@ -126,7 +149,7 @@ class _GameScreenState extends State<GameScreen> {
                     );
                   }),
                   const SizedBox(height: 32),
-                  const Text('Crew Members:'),
+                  Text(translate('crew_members')),
                   const SizedBox(height: 8),
                   ...initialGenerators.map((generator) {
                     final ownedCount = state.generators[generator.id] ?? 0;
@@ -158,7 +181,7 @@ class _GameScreenState extends State<GameScreen> {
                     return Card(
                       child: ListTile(
                         leading: _getDynamicIcon(generator.id),
-                        title: Text('${generator.name} ($ownedCount)'),
+                        title: Text('${translateDynamic(generator.id, 'crew')} ($ownedCount)'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -187,7 +210,7 @@ class _GameScreenState extends State<GameScreen> {
                     );
                   }),
                   const SizedBox(height: 32),
-                  const Text('Fleet:'),
+                  Text(translate('fleet')),
                   const SizedBox(height: 8),
                   ...initialFleet.map((generator) {
                     final ownedCount = state.generators[generator.id] ?? 0;
@@ -219,7 +242,7 @@ class _GameScreenState extends State<GameScreen> {
                     return Card(
                       child: ListTile(
                         leading: _getDynamicIcon(generator.id),
-                        title: Text('${generator.name} ($ownedCount)'),
+                        title: Text('${translateDynamic(generator.id, 'fleet')} ($ownedCount)'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

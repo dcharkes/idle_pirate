@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:idle_pirate/main.dart';
 import 'package:idle_pirate/state/game_controller.dart';
+import 'package:idle_pirate/state/translations.dart';
 
 class FakeBox implements Box {
   final Map<dynamic, dynamic> _data = {};
@@ -24,6 +25,28 @@ class FakeBox implements Box {
 }
 
 void main() {
+  setUpAll(() {
+    setTranslationsForTesting({
+      'doubloons': 'Doubloons',
+      'click_power': 'Click Power',
+      'per_second': 'per second',
+      'click_chest': 'Click Chest',
+      'max': 'Max',
+      'upgrades': 'Upgrades:',
+      'crew_members': 'Crew Members:',
+      'fleet': 'Fleet:',
+      'sharper_hooks': 'Sharper Hooks',
+      'better_shovels': 'Better Shovels',
+      'heavy_boots': 'Heavy Boots',
+      'cabin_boy': 'Cabin Boy',
+      'gunner': 'Gunner',
+      'quartermaster': 'Quartermaster',
+      'sloop': 'Sloop',
+      'brigantine': 'Brigantine',
+      'frigate': 'Frigate',
+    });
+  });
+
   testWidgets('Clicking chest increases doubloons', (
     WidgetTester tester,
   ) async {
@@ -225,6 +248,31 @@ void main() {
     );
     expect(progressWidget.value, closeTo(0.00165, 0.0001));
 
+    await box.close();
+  });
+
+  testWidgets('Switching language updates UI', (WidgetTester tester) async {
+    final box = FakeBox();
+    final controller = GameController(
+      box: box,
+      startTimer: false,
+      enableAudio: false,
+    );
+    
+    setTranslationsForTesting({'doubloons': 'Doubloons'});
+    
+    await tester.pumpWidget(MyApp(controller: controller));
+    
+    expect(find.text('Doubloons: 0'), findsOneWidget);
+    
+    // Mock new translations for Spanish
+    setTranslationsForTesting({'doubloons': 'Doblones'});
+    
+    // Re-pump widget to force rebuild with new translations
+    await tester.pumpWidget(MyApp(controller: controller));
+    
+    expect(find.text('Doblones: 0'), findsOneWidget);
+    
     await box.close();
   });
 }
