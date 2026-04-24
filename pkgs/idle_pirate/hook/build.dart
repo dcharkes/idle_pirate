@@ -54,11 +54,20 @@ void main(List<String> args) async {
       );
       if (translationsDir.existsSync()) {
         output.dependencies.add(translationsDir.uri);
+        final requestedLanguages = _getRequestedLanguages(input);
         final files = translationsDir.listSync();
         for (final file in files) {
           if (file is File) {
             output.dependencies.add(file.uri);
             final filename = file.uri.pathSegments.last;
+            final lang = filename.split('.').first;
+            
+            if (requestedLanguages != null && !requestedLanguages.contains(lang)) {
+              // ignore: avoid_print
+              print('Skipping translation file not requested: $filename');
+              continue;
+            }
+
             output.assets.data.add(
               DataAsset(
                 package: input.packageName,
@@ -74,4 +83,17 @@ void main(List<String> args) async {
       }
     }
   });
+}
+
+Set<String>? _getRequestedLanguages(BuildInput input) {
+  final requestedLanguages = input.userDefines['translations'];
+  if (requestedLanguages == null) return null;
+  
+  final list = <String>{};
+  if (requestedLanguages is List) {
+    list.addAll(requestedLanguages.cast<String>());
+  } else if (requestedLanguages is String) {
+    list.addAll(requestedLanguages.split(',').map((e) => e.trim()));
+  }
+  return list;
 }

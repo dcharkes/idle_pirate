@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 
 import '../../state/game_controller.dart';
@@ -16,6 +18,53 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   int _selectedAmount = 1;
+  List<String> _availableLanguages = ['en'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvailableLanguages();
+  }
+
+  Future<void> _loadAvailableLanguages() async {
+    try {
+      final manifestStr = await rootBundle.loadString('AssetManifest.json');
+      final manifestMap = json.decode(manifestStr) as Map<String, dynamic>;
+      final assets = manifestMap.keys.toList();
+      final langs = <String>[];
+      for (final asset in assets) {
+        if (asset.startsWith('packages/idle_pirate/assets/translations/') && asset.endsWith('.json')) {
+          final filename = asset.split('/').last;
+          final lang = filename.split('.').first;
+          langs.add(lang);
+        }
+      }
+      if (!langs.contains('en')) langs.add('en');
+      setState(() {
+        _availableLanguages = langs;
+      });
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to load asset manifest: $e');
+      // Fallback to just 'en' (initialized in state)
+      setState(() {
+        _availableLanguages = ['en'];
+      });
+    }
+  }
+
+  String _getLanguageLabel(String lang) {
+    switch (lang) {
+      case 'en': return '🇺🇸 EN';
+      case 'pirate_en': return '🏴‍☠️ EN';
+      case 'es': return '🇪🇸 ES';
+      case 'pirate_es': return '🏴‍☠️ ES';
+      case 'nl': return '🇳🇱 NL';
+      case 'pirate_nl': return '🏴‍☠️ NL';
+      case 'zh': return '🇨🇳 ZH';
+      default: return lang.toUpperCase();
+    }
+  }
 
   Widget _getDynamicIcon(String id) {
     return DynamicIcon(id, 40, 'upgrade').image;
@@ -29,14 +78,12 @@ class _GameScreenState extends State<GameScreen> {
         actions: [
           DropdownButton<String>(
             value: currentLanguage,
-            items: const [
-              DropdownMenuItem(value: 'en', child: Text('🇺🇸 EN')),
-              DropdownMenuItem(value: 'pirate_en', child: Text('🏴‍☠️ EN')),
-              DropdownMenuItem(value: 'es', child: Text('🇪🇸 ES')),
-              DropdownMenuItem(value: 'pirate_es', child: Text('🏴‍☠️ ES')),
-              DropdownMenuItem(value: 'nl', child: Text('🇳🇱 NL')),
-              DropdownMenuItem(value: 'pirate_nl', child: Text('🏴‍☠️ NL')),
-            ],
+            items: _availableLanguages.map((lang) {
+              return DropdownMenuItem(
+                value: lang,
+                child: Text(_getLanguageLabel(lang)),
+              );
+            }).toList(),
             onChanged: (String? newValue) async {
               if (newValue != null) {
                 await loadTranslations(newValue);

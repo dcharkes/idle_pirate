@@ -7,3 +7,8 @@ workspace:
   - pkgs/idle_pirate
   - pkgs/mini_audio
 
+hooks:
+  user_defines:
+    idle_pirate:
+      translations: [en, pirate_en, es, pirate_es, nl, pirate_nl]
+
