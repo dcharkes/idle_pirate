@@ -168,7 +168,7 @@ class _GameScreenState extends State<GameScreen> {
                   Text(translate('upgrades')),
                   const SizedBox(height: 8),
                   ...Item.equipment.map((upgrade) {
-                    final ownedCount = state.items[upgrade.id] ?? 0;
+                    final ownedCount = state.items[upgrade] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -178,7 +178,7 @@ class _GameScreenState extends State<GameScreen> {
 
                     final cost = upgrade.getBulkCost(ownedCount, amountToBuy);
                     final canAfford =
-                        state.doubloons >= cost && amountToBuy > 0;
+                        state.doubloons.value >= cost && amountToBuy > 0;
 
                     final costText = amountToBuy > 0
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
@@ -207,7 +207,7 @@ class _GameScreenState extends State<GameScreen> {
                   Text(translate('crew_members')),
                   const SizedBox(height: 8),
                   ...Item.personnel.map((generator) {
-                    final ownedCount = state.items[generator.id] ?? 0;
+                    final ownedCount = state.items[generator] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -217,7 +217,7 @@ class _GameScreenState extends State<GameScreen> {
 
                     final cost = generator.getBulkCost(ownedCount, amountToBuy);
                     final canAfford =
-                        state.doubloons >= cost && amountToBuy > 0;
+                        state.doubloons.value >= cost && amountToBuy > 0;
 
                     final costText = amountToBuy > 0
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
@@ -241,8 +241,7 @@ class _GameScreenState extends State<GameScreen> {
                             const SizedBox(height: 4),
                             LinearProgressIndicator(
                               value:
-                                  widget.controller.state.progress[generator
-                                      .id] ??
+                                  widget.controller.state.progress[generator] ??
                                   0.0,
                             ),
                           ],
@@ -263,7 +262,7 @@ class _GameScreenState extends State<GameScreen> {
                   Text(translate('fleet')),
                   const SizedBox(height: 8),
                   ...Item.fleet.map((generator) {
-                    final ownedCount = state.items[generator.id] ?? 0;
+                    final ownedCount = state.items[generator] ?? 0;
 
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
@@ -273,7 +272,7 @@ class _GameScreenState extends State<GameScreen> {
 
                     final cost = generator.getBulkCost(ownedCount, amountToBuy);
                     final canAfford =
-                        state.doubloons >= cost && amountToBuy > 0;
+                        state.doubloons.value >= cost && amountToBuy > 0;
 
                     final costText = amountToBuy > 0
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
@@ -297,8 +296,7 @@ class _GameScreenState extends State<GameScreen> {
                             const SizedBox(height: 4),
                             LinearProgressIndicator(
                               value:
-                                  widget.controller.state.progress[generator
-                                      .id] ??
+                                  widget.controller.state.progress[generator] ??
                                   0.0,
                             ),
                           ],

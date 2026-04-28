@@ -14,9 +14,8 @@ final class Item {
   final Doubloon reward;
   final Duration? duration;
 
-  const Item({
-    // ignore: experimental_member_use
-    @mustBeConst required this.id,
+  const Item._({
+    required this.id,
     required this.baseCost,
     required this.reward,
     this.duration,
@@ -46,54 +45,54 @@ final class Item {
 
   bool get isGenerator => duration != null;
 
-  static const sharperHooks = Item(
+  static const sharperHooks = Item._(
     id: 'sharper_hooks',
     baseCost: Doubloon(10),
     reward: Doubloon(1),
   );
-  static const betterShovels = Item(
+  static const betterShovels = Item._(
     id: 'better_shovels',
     baseCost: Doubloon(500),
     reward: Doubloon(5),
   );
-  static const heavyBoots = Item(
+  static const heavyBoots = Item._(
     id: 'heavy_boots',
     baseCost: Doubloon(5000),
     reward: Doubloon(25),
   );
 
-  static const cabinBoy = Item(
+  static const cabinBoy = Item._(
     id: 'cabin_boy',
     baseCost: Doubloon(15),
     reward: Doubloon(1),
     duration: Duration(seconds: 2),
   );
-  static const gunner = Item(
+  static const gunner = Item._(
     id: 'gunner',
     baseCost: Doubloon(500),
     reward: Doubloon(15),
     duration: Duration(seconds: 5),
   );
-  static const quartermaster = Item(
+  static const quartermaster = Item._(
     id: 'quartermaster',
     baseCost: Doubloon(8000),
     reward: Doubloon(100),
     duration: Duration(seconds: 10),
   );
 
-  static const sloop = Item(
+  static const sloop = Item._(
     id: 'sloop',
     baseCost: Doubloon(50000),
     reward: Doubloon(500),
     duration: Duration(seconds: 20),
   );
-  static const brigantine = Item(
+  static const brigantine = Item._(
     id: 'brigantine',
     baseCost: Doubloon(250000),
     reward: Doubloon(3000),
     duration: Duration(minutes: 1),
   );
-  static const frigate = Item(
+  static const frigate = Item._(
     id: 'frigate',
     baseCost: Doubloon(1000000),
     reward: Doubloon(15000),

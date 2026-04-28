@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:idle_pirate/state/game_controller.dart';
 import 'package:idle_pirate/models/item.dart';
+import 'package:idle_pirate/models/game_state.dart';
 
 void main() {
   setUpAll(() async {
@@ -23,11 +24,7 @@ void main() {
   test('Formula: getBulkCost calculates correctly', () async {
     final box = await Hive.openBox('test_cost');
 
-    final upgrade = Item(
-      id: 'test_upgrade',
-      baseCost: Doubloon(10),
-      reward: Doubloon(1),
-    );
+    final upgrade = Item.sharperHooks;
 
     // N = 0, K = 1 -> cost should be 10
     expect(upgrade.getBulkCost(0, 1), 10);
@@ -41,23 +38,27 @@ void main() {
 
   test('Formula: getMaxAffordable calculates correctly', () async {
     final box = await Hive.openBox('test_max');
-    await box.put('doubloons', 10);
+    await box.put('state', {
+      'doubloons': 10,
+      'items': <String, int>{},
+      'progress': <String, double>{},
+    });
 
     final controller = GameController(
       box: box,
       startTimer: false,
       enableAudio: false,
     );
-    final upgrade = Item(
-      id: 'test_upgrade',
-      baseCost: Doubloon(10),
-      reward: Doubloon(1),
-    );
+    final upgrade = Item.sharperHooks;
 
     expect(controller.state.getMaxAffordable(upgrade), 1);
 
     // With 203 doubloons, max afford should be 10
-    await box.put('doubloons', 204);
+    await box.put('state', {
+      'doubloons': 204,
+      'items': <String, int>{},
+      'progress': <String, double>{},
+    });
     final controller2 = GameController(
       box: box,
       startTimer: false,
@@ -70,7 +71,11 @@ void main() {
 
   test('Passive Income: calculates correctly', () async {
     final box = await Hive.openBox('test_passive');
-    await box.put('doubloons', 100);
+    await box.put('state', {
+      'doubloons': 100,
+      'items': <String, int>{},
+      'progress': <String, double>{},
+    });
     final controller = GameController(
       box: box,
       startTimer: false,
@@ -92,8 +97,11 @@ void main() {
     final box = await Hive.openBox('test_offline');
 
     // Set up state with 1 Cabin Boy
-    await box.put('generators', {'cabin_boy': 1});
-    await box.put('doubloons', 0);
+    await box.put('state', {
+      'doubloons': 0,
+      'items': {'cabin_boy': 1},
+      'progress': <String, double>{},
+    });
 
     // Set last saved to 10 seconds ago
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -106,15 +114,18 @@ void main() {
     );
 
     // Should have earned 10 doubloons (1/sec * 10 sec)
-    expect(controller.state.doubloons, 10);
+    expect(controller.state.doubloons.value, 10);
 
     await box.close();
   });
 
   test('Production Cycle: updates progress and awards income', () async {
     final box = await Hive.openBox('test_cycle');
-    await box.put('items', {'cabin_boy': 1});
-    await box.put('doubloons', 0);
+    await box.put('state', {
+      'doubloons': 0,
+      'items': {'cabin_boy': 1},
+      'progress': <String, double>{},
+    });
 
     final controller = GameController(
       box: box,
@@ -123,12 +134,12 @@ void main() {
     );
 
     // Initial progress should be 0
-    expect(controller.state.progress['cabin_boy'] ?? 0.0, 0.0);
+    expect(controller.state.progress[Item.cabinBoy] ?? 0.0, 0.0);
 
     // Tick once (33ms) -> Cabin Boy duration is 2s, so progress should be 0.033 / 2.0 = 0.0165
     controller.tick();
     expect(
-      controller.state.progress['cabin_boy'],
+      controller.state.progress[Item.cabinBoy],
       closeTo(0.0165, 0.001),
     );
     expect(controller.state.doubloons, 0);
@@ -140,7 +151,7 @@ void main() {
 
     // Progress should reset to 0 and doubloons should be awarded
     expect(
-      controller.state.progress['cabin_boy'],
+      controller.state.progress[Item.cabinBoy],
       closeTo(0.0, 0.02),
     );
     expect(
@@ -153,8 +164,11 @@ void main() {
 
   test('Fleet Production Cycle: updates progress and awards income', () async {
     final box = await Hive.openBox('test_fleet');
-    await box.put('items', {'sloop': 1});
-    await box.put('doubloons', 0);
+    await box.put('state', {
+      'doubloons': 0,
+      'items': {'sloop': 1},
+      'progress': <String, double>{},
+    });
 
     final controller = GameController(
       box: box,
@@ -163,12 +177,12 @@ void main() {
     );
 
     // Initial progress should be 0
-    expect(controller.state.progress['sloop'] ?? 0.0, 0.0);
+    expect(controller.state.progress[Item.sloop] ?? 0.0, 0.0);
 
     // Tick once (33ms) -> Sloop duration is 20s, so progress should be 0.033 / 20.0 = 0.00165
     controller.tick();
     expect(
-      controller.state.progress['sloop'],
+      controller.state.progress[Item.sloop],
       closeTo(0.00165, 0.0001),
     );
     expect(controller.state.doubloons, 0);
@@ -179,12 +193,30 @@ void main() {
     }
 
     // Progress should reset to 0 and doubloons should be awarded
-    expect(controller.state.progress['sloop'], closeTo(0.0, 0.02));
+    expect(controller.state.progress[Item.sloop], closeTo(0.0, 0.02));
     expect(
       controller.state.doubloons,
       10000,
     ); // 1 sloop * 500 reward * 20s duration
 
     await box.close();
+  });
+
+  test('GameState: toJson and fromJson work', () {
+    final state = GameState(
+      doubloons: Doubloon(100),
+      items: {Item.cabinBoy: 1},
+      progress: {Item.cabinBoy: 0.5},
+    );
+
+    final json = state.toJson();
+    expect(json['doubloons'], 100);
+    expect(json['items']['cabin_boy'], 1);
+    expect(json['progress']['cabin_boy'], 0.5);
+
+    final loadedState = GameState.fromJson(json);
+    expect(loadedState.doubloons.value, 100);
+    expect(loadedState.items[Item.cabinBoy], 1);
+    expect(loadedState.progress[Item.cabinBoy], 0.5);
   });
 }

@@ -209,7 +209,11 @@ void main() {
     WidgetTester tester,
   ) async {
     final box = FakeBox();
-    await box.put('doubloons', 50000);
+    await box.put('state', {
+      'doubloons': 50000,
+      'items': <String, int>{},
+      'progress': <String, double>{},
+    });
     final controller = GameController(
       box: box,
       startTimer: false,

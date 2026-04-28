@@ -78,29 +78,13 @@ class GameController extends ChangeNotifier {
 
   GameState get state => _state;
 
-  Map<String, int> _combineOldSaveData() {
-    final upgrades = Map<String, int>.from(
-      _box.get('upgrades', defaultValue: {}) as Map,
-    );
-    final generators = Map<String, int>.from(
-      _box.get('generators', defaultValue: {}) as Map,
-    );
-    return {...upgrades, ...generators};
-  }
-
   void _loadState() {
-    final doubloons = _box.get('doubloons', defaultValue: 0) as int;
-    final items = Map<String, int>.from(
-      _box.get('items', defaultValue: _combineOldSaveData()) as Map,
-    );
-    final progress = Map<String, double>.from(
-      _box.get('progress', defaultValue: {}) as Map,
-    );
-    _state = GameState(
-      doubloons: doubloons,
-      items: items,
-      progress: progress,
-    );
+    final stateJson = _box.get('state') as Map?;
+    if (stateJson != null) {
+      _state = GameState.fromJson(Map<String, dynamic>.from(stateJson));
+    } else {
+      _state = GameState();
+    }
 
     final lastSaved = _box.get('last_saved') as int?;
     if (lastSaved != null) {
@@ -113,9 +97,7 @@ class GameController extends ChangeNotifier {
   }
 
   void _saveState() {
-    _box.put('doubloons', _state.doubloons);
-    _box.put('items', _state.items);
-    _box.put('progress', _state.progress);
+    _box.put('state', _state.toJson());
     _box.put('last_saved', DateTime.now().millisecondsSinceEpoch);
   }
 
@@ -128,7 +110,7 @@ class GameController extends ChangeNotifier {
   void tick() {
     final newState = _state.elapseTime(const Duration(milliseconds: 33));
 
-    if (newState.doubloons > _state.doubloons) {
+    if (newState.doubloons.value > _state.doubloons.value) {
       _playSound(Sound.coin);
     }
 
