@@ -28,7 +28,7 @@ class GameState {
   }
 
   GameState buyUpgrades(Upgrade upgrade, int count) {
-    final allGens = [...initialGenerators, ...initialFleet];
+    final allGens = Upgrade.allGenerators;
     final isGenerator = allGens.any((g) => g.id == upgrade.id);
     final currentCount = isGenerator
         ? (generators[upgrade.id] ?? 0)
@@ -64,7 +64,7 @@ class GameState {
     for (final generatorId in generators.keys) {
       final count = generators[generatorId] ?? 0;
       if (count > 0) {
-        final allGens = [...initialGenerators, ...initialFleet];
+        final allGens = Upgrade.allGenerators;
         final generator = allGens.firstWhere((g) => g.id == generatorId);
         final duration = generator.duration!.inSeconds.toDouble();
         final progress = generatorsProgress[generatorId] ?? 0.0;
@@ -93,7 +93,7 @@ class GameState {
   }
 
   int getMaxAffordable(Upgrade upgrade) {
-    final allGens = [...initialGenerators, ...initialFleet];
+    final allGens = Upgrade.allGenerators;
     final isGenerator = allGens.any((g) => g.id == upgrade.id);
     final currentCount = isGenerator
         ? (generators[upgrade.id] ?? 0)
@@ -106,7 +106,7 @@ class GameState {
     int power = 1; // Base power
     for (final upgradeId in upgrades.keys) {
       final count = upgrades[upgradeId] ?? 0;
-      final upgrade = initialUpgrades.firstWhere((u) => u.id == upgradeId);
+      final upgrade = Upgrade.equipment.firstWhere((u) => u.id == upgradeId);
       power += upgrade.reward.value * count;
     }
     return power;
@@ -116,7 +116,7 @@ class GameState {
     int income = 0;
     for (final generatorId in generators.keys) {
       final count = generators[generatorId] ?? 0;
-      final allGens = [...initialGenerators, ...initialFleet];
+      final allGens = Upgrade.allGenerators;
       final generator = allGens.firstWhere((g) => g.id == generatorId);
       income += generator.reward.value * count;
     }

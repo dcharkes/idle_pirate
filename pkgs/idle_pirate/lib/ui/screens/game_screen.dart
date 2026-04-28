@@ -167,7 +167,7 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 32),
                   Text(translate('upgrades')),
                   const SizedBox(height: 8),
-                  ...initialUpgrades.map((upgrade) {
+                  ...Upgrade.equipment.map((upgrade) {
                     final ownedCount = state.upgrades[upgrade.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
@@ -206,7 +206,7 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 32),
                   Text(translate('crew_members')),
                   const SizedBox(height: 8),
-                  ...initialGenerators.map((generator) {
+                  ...Upgrade.personnel.map((generator) {
                     final ownedCount = state.generators[generator.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
@@ -264,7 +264,7 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 32),
                   Text(translate('fleet')),
                   const SizedBox(height: 8),
-                  ...initialFleet.map((generator) {
+                  ...Upgrade.fleet.map((generator) {
                     final ownedCount = state.generators[generator.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;

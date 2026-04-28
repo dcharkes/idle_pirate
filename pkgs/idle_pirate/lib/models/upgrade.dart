@@ -43,64 +43,86 @@ final class Upgrade {
     final k = (math.log(value) / math.log(r)).floor();
     return math.max(0, k);
   }
-}
 
-const List<Upgrade> initialUpgrades = [
-  Upgrade(
+  static const sharperHooks = Upgrade(
     id: 'sharper_hooks',
     baseCost: Doubloon(10),
     reward: Doubloon(1),
-  ),
-  Upgrade(
+  );
+  static const betterShovels = Upgrade(
     id: 'better_shovels',
     baseCost: Doubloon(500),
     reward: Doubloon(5),
-  ),
-  Upgrade(
+  );
+  static const heavyBoots = Upgrade(
     id: 'heavy_boots',
     baseCost: Doubloon(5000),
     reward: Doubloon(25),
-  ),
-];
+  );
 
-const List<Upgrade> initialGenerators = [
-  Upgrade(
+  static const cabinBoy = Upgrade(
     id: 'cabin_boy',
     baseCost: Doubloon(15),
     reward: Doubloon(1),
     duration: Duration(seconds: 2),
-  ),
-  Upgrade(
+  );
+  static const gunner = Upgrade(
     id: 'gunner',
     baseCost: Doubloon(500),
     reward: Doubloon(15),
     duration: Duration(seconds: 5),
-  ),
-  Upgrade(
+  );
+  static const quartermaster = Upgrade(
     id: 'quartermaster',
     baseCost: Doubloon(8000),
     reward: Doubloon(100),
     duration: Duration(seconds: 10),
-  ),
-];
+  );
 
-const List<Upgrade> initialFleet = [
-  Upgrade(
+  static const sloop = Upgrade(
     id: 'sloop',
     baseCost: Doubloon(50000),
     reward: Doubloon(500),
     duration: Duration(seconds: 20),
-  ),
-  Upgrade(
+  );
+  static const brigantine = Upgrade(
     id: 'brigantine',
     baseCost: Doubloon(250000),
     reward: Doubloon(3000),
     duration: Duration(minutes: 1),
-  ),
-  Upgrade(
+  );
+  static const frigate = Upgrade(
     id: 'frigate',
     baseCost: Doubloon(1000000),
     reward: Doubloon(15000),
     duration: Duration(minutes: 2),
-  ),
-];
+  );
+
+  static const equipment = [
+    sharperHooks,
+    betterShovels,
+    heavyBoots,
+  ];
+
+  static const personnel = [
+    cabinBoy,
+    gunner,
+    quartermaster,
+  ];
+
+  static const fleet = [
+    sloop,
+    brigantine,
+    frigate,
+  ];
+
+  static const allGenerators = [
+    ...personnel,
+    ...fleet,
+  ];
+
+  static const all = [
+    ...equipment,
+    ...allGenerators,
+  ];
+}

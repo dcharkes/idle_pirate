@@ -81,8 +81,7 @@ void main() {
     expect(controller.state.passiveIncomePerSecond, 0);
 
     // Buy a Cabin Boy (id: 'cabin_boy', reward: 1)
-    final cabinBoy = initialGenerators.firstWhere((g) => g.id == 'cabin_boy');
-    controller.buyUpgrades(cabinBoy, 1);
+    controller.buyUpgrades(Upgrade.cabinBoy, 1);
 
     expect(controller.state.passiveIncomePerSecond, 1);
 
