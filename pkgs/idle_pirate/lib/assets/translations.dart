@@ -2,15 +2,24 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:meta/meta.dart';
 
+const Map<String, String> allLanguages = {
+  'en': '🇺🇸 EN',
+  'pirate_en': '🏴‍☠️ EN',
+  'es': '🇪🇸 ES',
+  'pirate_es': '🏴‍☠️ ES',
+  'nl': '🇳🇱 NL',
+  'pirate_nl': '🏴‍☠️ NL',
+  'zh': '🇨🇳 ZH',
+};
+
 String currentLanguage = 'en';
 Map<String, String> _translations = {};
 
 Future<void> loadTranslations(String lang) async {
   try {
-    final data = await rootBundle.load(
+    final jsonStr = await rootBundle.loadString(
       'packages/idle_pirate/assets/translations/$lang.json',
     );
-    final jsonStr = utf8.decode(data.buffer.asUint8List());
     _translations = Map<String, String>.from(json.decode(jsonStr));
     currentLanguage = lang;
   } catch (e) {

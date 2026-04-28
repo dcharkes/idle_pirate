@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -27,52 +26,32 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _loadAvailableLanguages() async {
-    try {
-      final manifestStr = await rootBundle.loadString('AssetManifest.json');
-      final manifestMap = json.decode(manifestStr) as Map<String, dynamic>;
-      final assets = manifestMap.keys.toList();
-      final langs = <String>[];
-      for (final asset in assets) {
-        if (asset.startsWith('packages/idle_pirate/assets/translations/') &&
-            asset.endsWith('.json')) {
-          final filename = asset.split('/').last;
-          final lang = filename.split('.').first;
-          langs.add(lang);
-        }
+    final langs = <String>[];
+    for (final lang in allLanguages.keys) {
+      try {
+        await rootBundle.loadString(
+          'packages/idle_pirate/assets/translations/$lang.json',
+        );
+        langs.add(lang);
+      } catch (e) {
+        // Ignore failed loads
       }
-      if (!langs.contains('en')) langs.add('en');
-      setState(() {
-        _availableLanguages = langs;
-      });
-    } catch (e) {
-      // ignore: avoid_print
-      print('Failed to load asset manifest: $e');
-      // Fallback to just 'en' (initialized in state)
-      setState(() {
-        _availableLanguages = ['en'];
-      });
     }
+    if (!langs.contains('en')) langs.add('en');
+    setState(() {
+      _availableLanguages = langs;
+    });
   }
 
   String _getLanguageLabel(String lang) {
-    switch (lang) {
-      case 'en':
-        return '🇺🇸 EN';
-      case 'pirate_en':
-        return '🏴‍☠️ EN';
-      case 'es':
-        return '🇪🇸 ES';
-      case 'pirate_es':
-        return '🏴‍☠️ ES';
-      case 'nl':
-        return '🇳🇱 NL';
-      case 'pirate_nl':
-        return '🏴‍☠️ NL';
-      case 'zh':
-        return '🇨🇳 ZH';
-      default:
-        return lang.toUpperCase();
-    }
+    return allLanguages[lang] ?? lang.toUpperCase();
+  }
+
+  @visibleForTesting
+  void setAvailableLanguagesForTesting(List<String> langs) {
+    setState(() {
+      _availableLanguages = langs;
+    });
   }
 
   Widget _getDynamicIcon(String id) {
