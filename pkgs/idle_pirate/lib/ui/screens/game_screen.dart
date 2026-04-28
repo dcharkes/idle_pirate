@@ -231,9 +231,7 @@ class _GameScreenState extends State<GameScreen> {
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
-                    final duration =
-                        widget.controller.generatorDurations[generator.id] ??
-                        5.0;
+                    final duration = generator.duration!;
                     final cycleReward = generator.benefit * duration;
 
                     return Card(
@@ -294,9 +292,7 @@ class _GameScreenState extends State<GameScreen> {
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
-                    final duration =
-                        widget.controller.generatorDurations[generator.id] ??
-                        5.0;
+                    final duration = generator.duration!;
                     final cycleReward = generator.benefit * duration;
 
                     return Card(

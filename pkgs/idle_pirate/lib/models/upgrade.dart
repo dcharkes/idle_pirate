@@ -7,6 +7,7 @@ final class Upgrade {
   final String name;
   final int baseCost;
   final int benefit;
+  final double? duration;
 
   const Upgrade({
     // ignore: experimental_member_use
@@ -14,6 +15,7 @@ final class Upgrade {
     required this.name,
     required this.baseCost,
     required this.benefit,
+    this.duration,
   });
 }
 
@@ -43,18 +45,21 @@ const List<Upgrade> initialGenerators = [
     name: 'Cabin Boy',
     baseCost: 15,
     benefit: 1,
+    duration: 2.0,
   ),
   Upgrade(
     id: 'gunner',
     name: 'Gunner',
     baseCost: 500,
     benefit: 15,
+    duration: 5.0,
   ),
   Upgrade(
     id: 'quartermaster',
     name: 'Quartermaster',
     baseCost: 8000,
     benefit: 100,
+    duration: 10.0,
   ),
 ];
 const List<Upgrade> initialFleet = [
@@ -63,17 +68,20 @@ const List<Upgrade> initialFleet = [
     name: 'Sloop',
     baseCost: 50000,
     benefit: 500,
+    duration: 20.0,
   ),
   Upgrade(
     id: 'brigantine',
     name: 'Brigantine',
     baseCost: 250000,
     benefit: 3000,
+    duration: 60.0,
   ),
   Upgrade(
     id: 'frigate',
     name: 'Frigate',
     baseCost: 1000000,
     benefit: 15000,
+    duration: 120.0,
   ),
 ];

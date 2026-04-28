@@ -14,17 +14,8 @@ class GameController extends ChangeNotifier {
   GameState _state = GameState();
   Timer? _timer;
   final Map<String, double> _generatorsProgress = {};
-  final Map<String, double> _generatorDurations = {
-    'cabin_boy': 2.0,
-    'gunner': 5.0,
-    'quartermaster': 10.0,
-    'sloop': 20.0,
-    'brigantine': 60.0,
-    'frigate': 120.0,
-  };
 
   Map<String, double> get generatorsProgress => _generatorsProgress;
-  Map<String, double> get generatorDurations => _generatorDurations;
 
   GameController({
     required this._box,
@@ -158,13 +149,13 @@ class GameController extends ChangeNotifier {
     for (final generatorId in _state.generators.keys) {
       final count = _state.generators[generatorId] ?? 0;
       if (count > 0) {
-        final duration = _generatorDurations[generatorId] ?? 5.0;
+        final allGens = [...initialGenerators, ...initialFleet];
+        final generator = allGens.firstWhere((g) => g.id == generatorId);
+        final duration = generator.duration!;
         final currentProgress = _generatorsProgress[generatorId] ?? 0.0;
         final newProgress = currentProgress + (0.033 / duration);
 
         if (newProgress >= 1.0) {
-          final allGens = [...initialGenerators, ...initialFleet];
-          final generator = allGens.firstWhere((g) => g.id == generatorId);
           final cycleReward = generator.benefit * count * duration;
           _state = _state.copyWith(
             doubloons: _state.doubloons + cycleReward.toInt(),
@@ -197,7 +188,9 @@ class GameController extends ChangeNotifier {
         for (final generatorId in _state.generators.keys) {
           final count = _state.generators[generatorId] ?? 0;
           if (count > 0) {
-            final duration = _generatorDurations[generatorId] ?? 5.0;
+            final allGens = [...initialGenerators, ...initialFleet];
+            final generator = allGens.firstWhere((g) => g.id == generatorId);
+            final duration = generator.duration!;
             final currentProgress = _generatorsProgress[generatorId] ?? 0.0;
 
             final totalElapsedWithCurrentProgress =
@@ -205,9 +198,6 @@ class GameController extends ChangeNotifier {
             final fullCycles = (totalElapsedWithCurrentProgress / duration)
                 .floor();
             final remainderSeconds = totalElapsedWithCurrentProgress % duration;
-
-            final allGens = [...initialGenerators, ...initialFleet];
-            final generator = allGens.firstWhere((g) => g.id == generatorId);
             final cycleReward = generator.benefit * count * duration;
 
             totalOfflineEarnings += (fullCycles * cycleReward).toInt();
