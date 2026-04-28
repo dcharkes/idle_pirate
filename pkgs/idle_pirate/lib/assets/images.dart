@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
+import '../models/upgrade.dart';
 
 // ignore: experimental_member_use
 @RecordUse()
@@ -46,29 +47,20 @@ final class DynamicIcon {
   );
 }
 
+final Map<String, IconData> _iconData = {
+  Upgrade.sharperHooks.id: Icons.fitness_center,
+  Upgrade.betterShovels.id: Icons.agriculture,
+  Upgrade.heavyBoots.id: Icons.directions_walk,
+  Upgrade.cabinBoy.id: Icons.person,
+  Upgrade.gunner.id: Icons.security,
+  Upgrade.quartermaster.id: Icons.star,
+  Upgrade.sloop.id: Icons.directions_boat,
+  Upgrade.brigantine.id: Icons.directions_boat,
+  Upgrade.frigate.id: Icons.directions_boat,
+  'doubloon': Icons.monetization_on,
+  'chest': Icons.archive,
+};
+
 IconData _getIconForId(String id) {
-  switch (id) {
-    case 'sharper_hooks':
-      return Icons.fitness_center;
-    case 'better_shovels':
-      return Icons.agriculture;
-    case 'heavy_boots':
-      return Icons.directions_walk;
-    case 'cabin_boy':
-      return Icons.person;
-    case 'gunner':
-      return Icons.security;
-    case 'quartermaster':
-      return Icons.star;
-    case 'sloop':
-    case 'brigantine':
-    case 'frigate':
-      return Icons.directions_boat;
-    case 'doubloon':
-      return Icons.monetization_on;
-    case 'chest':
-      return Icons.archive;
-    default:
-      return Icons.help_outline;
-  }
+  return _iconData[id] ?? Icons.help_outline;
 }

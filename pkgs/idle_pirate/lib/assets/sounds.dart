@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:meta/meta.dart';
+import '../models/upgrade.dart';
 
 // ignore: experimental_member_use
 @RecordUse()
@@ -34,14 +35,14 @@ final class Sound {
   }
 }
 
-const Map<String, Sound> upgradeSounds = {
-  'sharper_hooks': Sound.hook,
-  'better_shovels': Sound.shovel,
-  'heavy_boots': Sound.boot,
-  'gunner': Sound.gunner,
-  'cabin_boy': Sound.yarr,
-  'quartermaster': Sound.shiverMeTimbers,
-  'sloop': Sound.raiseTheSails,
-  'brigantine': Sound.raiseTheSails,
-  'frigate': Sound.raiseTheSails,
+final Map<String, Sound> upgradeSounds = {
+  Upgrade.sharperHooks.id: Sound.hook,
+  Upgrade.betterShovels.id: Sound.shovel,
+  Upgrade.heavyBoots.id: Sound.boot,
+  Upgrade.gunner.id: Sound.gunner,
+  Upgrade.cabinBoy.id: Sound.yarr,
+  Upgrade.quartermaster.id: Sound.shiverMeTimbers,
+  Upgrade.sloop.id: Sound.raiseTheSails,
+  Upgrade.brigantine.id: Sound.raiseTheSails,
+  Upgrade.frigate.id: Sound.raiseTheSails,
 };
