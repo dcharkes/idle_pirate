@@ -125,12 +125,12 @@ class _GameScreenState extends State<GameScreen> {
                     ],
                   ),
                   Text(
-                    '${translate('click_power')}: ${widget.controller.clickPower}',
+                    '${translate('click_power')}: ${widget.controller.state.clickPower}',
                     style: Theme.of(context).textTheme.titleMedium,
                     textAlign: TextAlign.center,
                   ),
                   Text(
-                    'Income: ${widget.controller.passiveIncomePerSecond} ${translate('per_second')}',
+                    'Income: ${widget.controller.state.passiveIncomePerSecond} ${translate('per_second')}',
                     style: Theme.of(context).textTheme.titleMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -173,19 +173,16 @@ class _GameScreenState extends State<GameScreen> {
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
                     if (isMax) {
-                      amountToBuy = widget.controller.getMaxAffordable(upgrade);
+                      amountToBuy = state.getMaxAffordable(upgrade);
                     }
 
-                    final cost = widget.controller.getBulkCost(
-                      upgrade,
-                      amountToBuy,
-                    );
+                    final cost = upgrade.getBulkCost(ownedCount, amountToBuy);
                     final canAfford =
                         state.doubloons >= cost && amountToBuy > 0;
 
                     final costText = amountToBuy > 0
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
-                        : '${widget.controller.getBulkCost(upgrade, 1)} D';
+                        : '${upgrade.getBulkCost(ownedCount, 1)} D';
 
                     return Card(
                       child: ListTile(
@@ -193,7 +190,7 @@ class _GameScreenState extends State<GameScreen> {
                         title: Text(
                           '${translateDynamic(upgrade.id, 'upgrade')} ($ownedCount)',
                         ),
-                        subtitle: Text('+${upgrade.benefit.value} click power'),
+                        subtitle: Text('+${upgrade.reward.value} click power'),
                         trailing: ElevatedButton(
                           onPressed: canAfford
                               ? () => widget.controller.buyUpgrades(
@@ -215,24 +212,19 @@ class _GameScreenState extends State<GameScreen> {
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
                     if (isMax) {
-                      amountToBuy = widget.controller.getMaxAffordable(
-                        generator,
-                      );
+                      amountToBuy = state.getMaxAffordable(generator);
                     }
 
-                    final cost = widget.controller.getBulkCost(
-                      generator,
-                      amountToBuy,
-                    );
+                    final cost = generator.getBulkCost(ownedCount, amountToBuy);
                     final canAfford =
                         state.doubloons >= cost && amountToBuy > 0;
 
                     final costText = amountToBuy > 0
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
-                        : '${widget.controller.getBulkCost(generator, 1)} D';
+                        : '${generator.getBulkCost(ownedCount, 1)} D';
 
                     final duration = generator.duration!.inSeconds.toDouble();
-                    final cycleReward = generator.benefit.value * duration;
+                    final cycleReward = generator.reward.value * duration;
 
                     return Card(
                       child: ListTile(
@@ -249,8 +241,10 @@ class _GameScreenState extends State<GameScreen> {
                             const SizedBox(height: 4),
                             LinearProgressIndicator(
                               value:
-                                  widget.controller.generatorsProgress[generator
-                                      .id] ??
+                                  widget
+                                      .controller
+                                      .state
+                                      .generatorsProgress[generator.id] ??
                                   0.0,
                             ),
                           ],
@@ -276,24 +270,19 @@ class _GameScreenState extends State<GameScreen> {
                     int amountToBuy = _selectedAmount;
                     final isMax = _selectedAmount == -1;
                     if (isMax) {
-                      amountToBuy = widget.controller.getMaxAffordable(
-                        generator,
-                      );
+                      amountToBuy = state.getMaxAffordable(generator);
                     }
 
-                    final cost = widget.controller.getBulkCost(
-                      generator,
-                      amountToBuy,
-                    );
+                    final cost = generator.getBulkCost(ownedCount, amountToBuy);
                     final canAfford =
                         state.doubloons >= cost && amountToBuy > 0;
 
                     final costText = amountToBuy > 0
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
-                        : '${widget.controller.getBulkCost(generator, 1)} D';
+                        : '${generator.getBulkCost(ownedCount, 1)} D';
 
                     final duration = generator.duration!.inSeconds.toDouble();
-                    final cycleReward = generator.benefit.value * duration;
+                    final cycleReward = generator.reward.value * duration;
 
                     return Card(
                       child: ListTile(
@@ -310,8 +299,10 @@ class _GameScreenState extends State<GameScreen> {
                             const SizedBox(height: 4),
                             LinearProgressIndicator(
                               value:
-                                  widget.controller.generatorsProgress[generator
-                                      .id] ??
+                                  widget
+                                      .controller
+                                      .state
+                                      .generatorsProgress[generator.id] ??
                                   0.0,
                             ),
                           ],

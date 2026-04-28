@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:meta/meta.dart';
 
 extension type const Doubloon(int value) {
@@ -10,33 +11,55 @@ extension type const Doubloon(int value) {
 final class Upgrade {
   final String id;
   final Doubloon baseCost;
-  final Doubloon benefit;
+  final Doubloon reward;
   final Duration? duration;
 
   const Upgrade({
     // ignore: experimental_member_use
     @mustBeConst required this.id,
     required this.baseCost,
-    required this.benefit,
+    required this.reward,
     this.duration,
   });
+
+  int getBulkCost(int currentCount, int count) {
+    if (count <= 0) return 0;
+    final r = 1.15;
+    final cost =
+        baseCost.value *
+        (math.pow(r, currentCount) * (math.pow(r, count) - 1)) /
+        (r - 1);
+    return cost.toInt();
+  }
+
+  int getMaxAffordable(int currentCount, int doubloons) {
+    final c = doubloons;
+    final b = baseCost.value;
+    final r = 1.15;
+    final n = currentCount;
+
+    final value = (c * (r - 1)) / (b * math.pow(r, n)) + 1;
+    if (value <= 0) return 0;
+    final k = (math.log(value) / math.log(r)).floor();
+    return math.max(0, k);
+  }
 }
 
 const List<Upgrade> initialUpgrades = [
   Upgrade(
     id: 'sharper_hooks',
     baseCost: Doubloon(10),
-    benefit: Doubloon(1),
+    reward: Doubloon(1),
   ),
   Upgrade(
     id: 'better_shovels',
     baseCost: Doubloon(500),
-    benefit: Doubloon(5),
+    reward: Doubloon(5),
   ),
   Upgrade(
     id: 'heavy_boots',
     baseCost: Doubloon(5000),
-    benefit: Doubloon(25),
+    reward: Doubloon(25),
   ),
 ];
 
@@ -44,19 +67,19 @@ const List<Upgrade> initialGenerators = [
   Upgrade(
     id: 'cabin_boy',
     baseCost: Doubloon(15),
-    benefit: Doubloon(1),
+    reward: Doubloon(1),
     duration: Duration(seconds: 2),
   ),
   Upgrade(
     id: 'gunner',
     baseCost: Doubloon(500),
-    benefit: Doubloon(15),
+    reward: Doubloon(15),
     duration: Duration(seconds: 5),
   ),
   Upgrade(
     id: 'quartermaster',
     baseCost: Doubloon(8000),
-    benefit: Doubloon(100),
+    reward: Doubloon(100),
     duration: Duration(seconds: 10),
   ),
 ];
@@ -65,19 +88,19 @@ const List<Upgrade> initialFleet = [
   Upgrade(
     id: 'sloop',
     baseCost: Doubloon(50000),
-    benefit: Doubloon(500),
+    reward: Doubloon(500),
     duration: Duration(seconds: 20),
   ),
   Upgrade(
     id: 'brigantine',
     baseCost: Doubloon(250000),
-    benefit: Doubloon(3000),
+    reward: Doubloon(3000),
     duration: Duration(minutes: 1),
   ),
   Upgrade(
     id: 'frigate',
     baseCost: Doubloon(1000000),
-    benefit: Doubloon(15000),
+    reward: Doubloon(15000),
     duration: Duration(minutes: 2),
   ),
 ];

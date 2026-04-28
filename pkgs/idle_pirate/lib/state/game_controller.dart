@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 
 import 'package:hive/hive.dart';
@@ -13,9 +13,7 @@ class GameController extends ChangeNotifier {
   final Box _box;
   GameState _state = GameState();
   Timer? _timer;
-  final Map<String, double> _generatorsProgress = {};
-
-  Map<String, double> get generatorsProgress => _generatorsProgress;
+  int _tickCount = 0;
 
   GameController({
     required this._box,
@@ -94,7 +92,14 @@ class GameController extends ChangeNotifier {
       generators: generators,
     );
 
-    _calculateOfflineEarnings();
+    final lastSaved = _box.get('last_saved') as int?;
+    if (lastSaved != null) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final elapsed = Duration(milliseconds: now - lastSaved);
+      if (elapsed.inSeconds > 0) {
+        _state = _state.elapseTime(elapsed);
+      }
+    }
   }
 
   void _saveState() {
@@ -104,27 +109,6 @@ class GameController extends ChangeNotifier {
     _box.put('last_saved', DateTime.now().millisecondsSinceEpoch);
   }
 
-  int get clickPower {
-    int power = 1; // Base power
-    for (final upgradeId in _state.upgrades.keys) {
-      final count = _state.upgrades[upgradeId] ?? 0;
-      final upgrade = initialUpgrades.firstWhere((u) => u.id == upgradeId);
-      power += upgrade.benefit.value * count;
-    }
-    return power;
-  }
-
-  int get passiveIncomePerSecond {
-    int income = 0;
-    for (final generatorId in _state.generators.keys) {
-      final count = _state.generators[generatorId] ?? 0;
-      final allGens = [...initialGenerators, ...initialFleet];
-      final generator = allGens.firstWhere((g) => g.id == generatorId);
-      income += generator.benefit.value * count;
-    }
-    return income;
-  }
-
   void _startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 33), (timer) {
       tick();
@@ -132,80 +116,16 @@ class GameController extends ChangeNotifier {
   }
 
   void tick() {
-    bool stateChanged = false;
+    _state = _state.elapseTime(const Duration(milliseconds: 33));
 
-    for (final generatorId in _state.generators.keys) {
-      final count = _state.generators[generatorId] ?? 0;
-      if (count > 0) {
-        final allGens = [...initialGenerators, ...initialFleet];
-        final generator = allGens.firstWhere((g) => g.id == generatorId);
-        final duration = generator.duration!.inSeconds.toDouble();
-        final currentProgress = _generatorsProgress[generatorId] ?? 0.0;
-        final newProgress = currentProgress + (0.033 / duration);
-
-        if (newProgress >= 1.0) {
-          final cycleReward = generator.benefit.value * count * duration;
-          _state = _state.copyWith(
-            doubloons: _state.doubloons + cycleReward.toInt(),
-          );
-          _generatorsProgress[generatorId] = 0.0;
-          stateChanged = true;
-          _playSound(Sound.coin);
-        } else {
-          _generatorsProgress[generatorId] = newProgress;
-        }
-      }
+    _tickCount++;
+    if (_tickCount >= 150) {
+      // 150 * 33ms = 4950ms (~5 seconds)
+      _saveState();
+      _tickCount = 0;
     }
 
     notifyListeners();
-
-    if (stateChanged) {
-      _saveState();
-    }
-  }
-
-  void _calculateOfflineEarnings() {
-    final lastSaved = _box.get('last_saved') as int?;
-    if (lastSaved != null) {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final elapsedSeconds = (now - lastSaved) / 1000.0;
-      if (elapsedSeconds > 0) {
-        int totalOfflineEarnings = 0;
-        bool stateChanged = false;
-
-        for (final generatorId in _state.generators.keys) {
-          final count = _state.generators[generatorId] ?? 0;
-          if (count > 0) {
-            final allGens = [...initialGenerators, ...initialFleet];
-            final generator = allGens.firstWhere((g) => g.id == generatorId);
-            final duration = generator.duration!.inSeconds.toDouble();
-            final currentProgress = _generatorsProgress[generatorId] ?? 0.0;
-
-            final totalElapsedWithCurrentProgress =
-                elapsedSeconds + (currentProgress * duration);
-            final fullCycles = (totalElapsedWithCurrentProgress / duration)
-                .floor();
-            final remainderSeconds = totalElapsedWithCurrentProgress % duration;
-            final cycleReward = generator.benefit.value * count * duration;
-
-            totalOfflineEarnings += (fullCycles * cycleReward).toInt();
-
-            _generatorsProgress[generatorId] = remainderSeconds / duration;
-            stateChanged = true;
-          }
-        }
-
-        if (totalOfflineEarnings > 0) {
-          _state = _state.copyWith(
-            doubloons: _state.doubloons + totalOfflineEarnings,
-          );
-        }
-
-        if (stateChanged || totalOfflineEarnings > 0) {
-          _saveState();
-        }
-      }
-    }
   }
 
   @override
@@ -215,49 +135,17 @@ class GameController extends ChangeNotifier {
   }
 
   void clickChest() {
-    _state = _state.copyWith(doubloons: _state.doubloons + clickPower);
+    _state = _state.clickChest();
     _playSound(Sound.coin);
     _saveState();
     notifyListeners();
   }
 
-  int getBulkCost(Upgrade upgrade, int count) {
-    if (count <= 0) return 0;
-    final allGens = [...initialGenerators, ...initialFleet];
-    final isGenerator = allGens.any((g) => g.id == upgrade.id);
-    final currentCount = isGenerator
-        ? (_state.generators[upgrade.id] ?? 0)
-        : (_state.upgrades[upgrade.id] ?? 0);
-    final r = 1.15;
-    final cost =
-        upgrade.baseCost.value *
-        (math.pow(r, currentCount) * (math.pow(r, count) - 1)) /
-        (r - 1);
-    return cost.toInt();
-  }
-
   void buyUpgrades(Upgrade upgrade, int count) {
-    final cost = getBulkCost(upgrade, count);
-    if (_state.doubloons >= cost && count > 0) {
-      final allGens = [...initialGenerators, ...initialFleet];
-      final isGenerator = allGens.any((g) => g.id == upgrade.id);
-      if (isGenerator) {
-        final currentCount = _state.generators[upgrade.id] ?? 0;
-        final newGenerators = Map<String, int>.from(_state.generators);
-        newGenerators[upgrade.id] = currentCount + count;
-        _state = _state.copyWith(
-          doubloons: _state.doubloons - cost,
-          generators: newGenerators,
-        );
-      } else {
-        final currentCount = _state.upgrades[upgrade.id] ?? 0;
-        final newUpgrades = Map<String, int>.from(_state.upgrades);
-        newUpgrades[upgrade.id] = currentCount + count;
-        _state = _state.copyWith(
-          doubloons: _state.doubloons - cost,
-          upgrades: newUpgrades,
-        );
-      }
+    final newState = _state.buyUpgrades(upgrade, count);
+
+    if (newState != _state) {
+      _state = newState;
 
       // Play sound based on upgrade ID
       final sound = upgradeSounds[upgrade.id] ?? Sound.coin;
@@ -266,23 +154,6 @@ class GameController extends ChangeNotifier {
       _saveState();
       notifyListeners();
     }
-  }
-
-  int getMaxAffordable(Upgrade upgrade) {
-    final allGens = [...initialGenerators, ...initialFleet];
-    final isGenerator = allGens.any((g) => g.id == upgrade.id);
-    final currentCount = isGenerator
-        ? (_state.generators[upgrade.id] ?? 0)
-        : (_state.upgrades[upgrade.id] ?? 0);
-    final c = _state.doubloons;
-    final b = upgrade.baseCost.value;
-    final r = 1.15;
-    final n = currentCount;
-
-    final value = (c * (r - 1)) / (b * math.pow(r, n)) + 1;
-    if (value <= 0) return 0;
-    final k = (math.log(value) / math.log(r)).floor();
-    return math.max(0, k);
   }
 
   void buyUpgrade(Upgrade upgrade) {

@@ -22,24 +22,19 @@ void main() {
 
   test('Formula: getBulkCost calculates correctly', () async {
     final box = await Hive.openBox('test_cost');
-    final controller = GameController(
-      box: box,
-      startTimer: false,
-      enableAudio: false,
-    );
 
     final upgrade = Upgrade(
       id: 'test_upgrade',
       baseCost: Doubloon(10),
-      benefit: Doubloon(1),
+      reward: Doubloon(1),
     );
 
     // N = 0, K = 1 -> cost should be 10
-    expect(controller.getBulkCost(upgrade, 1), 10);
+    expect(upgrade.getBulkCost(0, 1), 10);
 
     // N = 0, K = 10 -> cost should be 10 * (1.15^10 - 1) / 0.15
     // 10 * (4.0455 - 1) / 0.15 = 10 * 3.0455 / 0.15 = 203.03 -> 203
-    expect(controller.getBulkCost(upgrade, 10), 203);
+    expect(upgrade.getBulkCost(0, 10), 203);
 
     await box.close();
   });
@@ -56,10 +51,10 @@ void main() {
     final upgrade = Upgrade(
       id: 'test_upgrade',
       baseCost: Doubloon(10),
-      benefit: Doubloon(1),
+      reward: Doubloon(1),
     );
 
-    expect(controller.getMaxAffordable(upgrade), 1);
+    expect(controller.state.getMaxAffordable(upgrade), 1);
 
     // With 203 doubloons, max afford should be 10
     await box.put('doubloons', 204);
@@ -68,7 +63,7 @@ void main() {
       startTimer: false,
       enableAudio: false,
     );
-    expect(controller2.getMaxAffordable(upgrade), 10);
+    expect(controller2.state.getMaxAffordable(upgrade), 10);
 
     await box.close();
   });
@@ -83,13 +78,13 @@ void main() {
     );
 
     // Initial income should be 0
-    expect(controller.passiveIncomePerSecond, 0);
+    expect(controller.state.passiveIncomePerSecond, 0);
 
-    // Buy a Cabin Boy (id: 'cabin_boy', benefit: 1)
+    // Buy a Cabin Boy (id: 'cabin_boy', reward: 1)
     final cabinBoy = initialGenerators.firstWhere((g) => g.id == 'cabin_boy');
     controller.buyUpgrades(cabinBoy, 1);
 
-    expect(controller.passiveIncomePerSecond, 1);
+    expect(controller.state.passiveIncomePerSecond, 1);
 
     await box.close();
   });
@@ -129,11 +124,14 @@ void main() {
     );
 
     // Initial progress should be 0
-    expect(controller.generatorsProgress['cabin_boy'] ?? 0.0, 0.0);
+    expect(controller.state.generatorsProgress['cabin_boy'] ?? 0.0, 0.0);
 
     // Tick once (33ms) -> Cabin Boy duration is 2s, so progress should be 0.033 / 2.0 = 0.0165
     controller.tick();
-    expect(controller.generatorsProgress['cabin_boy'], closeTo(0.0165, 0.001));
+    expect(
+      controller.state.generatorsProgress['cabin_boy'],
+      closeTo(0.0165, 0.001),
+    );
     expect(controller.state.doubloons, 0);
 
     // Tick 60 more times (total 61 ticks = 2.013 seconds)
@@ -142,11 +140,14 @@ void main() {
     }
 
     // Progress should reset to 0 and doubloons should be awarded
-    expect(controller.generatorsProgress['cabin_boy'], 0.0);
+    expect(
+      controller.state.generatorsProgress['cabin_boy'],
+      closeTo(0.0, 0.02),
+    );
     expect(
       controller.state.doubloons,
       2,
-    ); // 1 cabin boy * 1 benefit * 2s duration
+    ); // 1 cabin boy * 1 reward * 2s duration
 
     await box.close();
   });
@@ -163,11 +164,14 @@ void main() {
     );
 
     // Initial progress should be 0
-    expect(controller.generatorsProgress['sloop'] ?? 0.0, 0.0);
+    expect(controller.state.generatorsProgress['sloop'] ?? 0.0, 0.0);
 
     // Tick once (33ms) -> Sloop duration is 20s, so progress should be 0.033 / 20.0 = 0.00165
     controller.tick();
-    expect(controller.generatorsProgress['sloop'], closeTo(0.00165, 0.0001));
+    expect(
+      controller.state.generatorsProgress['sloop'],
+      closeTo(0.00165, 0.0001),
+    );
     expect(controller.state.doubloons, 0);
 
     // Tick enough times to complete the cycle (20s / 0.033s = 606 ticks)
@@ -176,11 +180,11 @@ void main() {
     }
 
     // Progress should reset to 0 and doubloons should be awarded
-    expect(controller.generatorsProgress['sloop'], 0.0);
+    expect(controller.state.generatorsProgress['sloop'], closeTo(0.0, 0.02));
     expect(
       controller.state.doubloons,
       10000,
-    ); // 1 sloop * 500 benefit * 20s duration
+    ); // 1 sloop * 500 reward * 20s duration
 
     await box.close();
   });
