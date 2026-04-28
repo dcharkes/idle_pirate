@@ -78,18 +78,28 @@ class GameController extends ChangeNotifier {
 
   GameState get state => _state;
 
-  void _loadState() {
-    final doubloons = _box.get('doubloons', defaultValue: 0) as int;
+  Map<String, int> _combineOldSaveData() {
     final upgrades = Map<String, int>.from(
       _box.get('upgrades', defaultValue: {}) as Map,
     );
     final generators = Map<String, int>.from(
       _box.get('generators', defaultValue: {}) as Map,
     );
+    return {...upgrades, ...generators};
+  }
+
+  void _loadState() {
+    final doubloons = _box.get('doubloons', defaultValue: 0) as int;
+    final items = Map<String, int>.from(
+      _box.get('items', defaultValue: _combineOldSaveData()) as Map,
+    );
+    final progress = Map<String, double>.from(
+      _box.get('progress', defaultValue: {}) as Map,
+    );
     _state = GameState(
       doubloons: doubloons,
-      upgrades: upgrades,
-      generators: generators,
+      items: items,
+      progress: progress,
     );
 
     final lastSaved = _box.get('last_saved') as int?;
@@ -104,8 +114,8 @@ class GameController extends ChangeNotifier {
 
   void _saveState() {
     _box.put('doubloons', _state.doubloons);
-    _box.put('upgrades', _state.upgrades);
-    _box.put('generators', _state.generators);
+    _box.put('items', _state.items);
+    _box.put('progress', _state.progress);
     _box.put('last_saved', DateTime.now().millisecondsSinceEpoch);
   }
 
@@ -116,7 +126,13 @@ class GameController extends ChangeNotifier {
   }
 
   void tick() {
-    _state = _state.elapseTime(const Duration(milliseconds: 33));
+    final newState = _state.elapseTime(const Duration(milliseconds: 33));
+
+    if (newState.doubloons > _state.doubloons) {
+      _playSound(Sound.coin);
+    }
+
+    _state = newState;
 
     _tickCount++;
     if (_tickCount >= 150) {

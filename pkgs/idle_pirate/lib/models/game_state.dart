@@ -2,55 +2,39 @@ import 'upgrade.dart';
 
 class GameState {
   final int doubloons;
-  final Map<String, int> upgrades;
-  final Map<String, int> generators;
-  final Map<String, double> generatorsProgress;
+  final Map<String, int> items;
+  final Map<String, double> progress;
 
   GameState({
     this.doubloons = 0,
-    this.upgrades = const {},
-    this.generators = const {},
-    this.generatorsProgress = const {},
+    this.items = const {},
+    this.progress = const {},
   });
 
   GameState _copyWith({
     int? doubloons,
-    Map<String, int>? upgrades,
-    Map<String, int>? generators,
-    Map<String, double>? generatorsProgress,
+    Map<String, int>? items,
+    Map<String, double>? progress,
   }) {
     return GameState(
       doubloons: doubloons ?? this.doubloons,
-      upgrades: upgrades ?? this.upgrades,
-      generators: generators ?? this.generators,
-      generatorsProgress: generatorsProgress ?? this.generatorsProgress,
+      items: items ?? this.items,
+
+      progress: progress ?? this.progress,
     );
   }
 
   GameState buyUpgrades(Upgrade upgrade, int count) {
-    final allGens = Upgrade.allGenerators;
-    final isGenerator = allGens.any((g) => g.id == upgrade.id);
-    final currentCount = isGenerator
-        ? (generators[upgrade.id] ?? 0)
-        : (upgrades[upgrade.id] ?? 0);
+    final currentCount = items[upgrade.id] ?? 0;
     final cost = upgrade.getBulkCost(currentCount, count);
 
     if (doubloons >= cost && count > 0) {
-      if (isGenerator) {
-        final newGenerators = Map<String, int>.from(generators);
-        newGenerators[upgrade.id] = currentCount + count;
-        return _copyWith(
-          doubloons: doubloons - cost,
-          generators: newGenerators,
-        );
-      } else {
-        final newUpgrades = Map<String, int>.from(upgrades);
-        newUpgrades[upgrade.id] = currentCount + count;
-        return _copyWith(
-          doubloons: doubloons - cost,
-          upgrades: newUpgrades,
-        );
-      }
+      final newItems = Map<String, int>.from(items);
+      newItems[upgrade.id] = currentCount + count;
+      return _copyWith(
+        doubloons: doubloons - cost,
+        items: newItems,
+      );
     }
     return this; // Return current state if cannot afford
   }
@@ -58,34 +42,36 @@ class GameState {
   GameState elapseTime(Duration elapsed) {
     final elapsedSeconds = elapsed.inMilliseconds.toDouble() / 1000.0;
     int totalEarnings = 0;
-    final newProgress = Map<String, double>.from(generatorsProgress);
+    final newProgress = Map<String, double>.from(progress);
     bool stateChanged = false;
 
-    for (final generatorId in generators.keys) {
-      final count = generators[generatorId] ?? 0;
+    for (final itemId in items.keys) {
+      final count = items[itemId] ?? 0;
       if (count > 0) {
-        final allGens = Upgrade.allGenerators;
-        final generator = allGens.firstWhere((g) => g.id == generatorId);
-        final duration = generator.duration!.inSeconds.toDouble();
-        final progress = generatorsProgress[generatorId] ?? 0.0;
+        final upgrade = Upgrade.all.firstWhere((u) => u.id == itemId);
+        if (upgrade.isGenerator) {
+          final duration = upgrade.duration!.inSeconds.toDouble();
+          final progress = this.progress[itemId] ?? 0.0;
 
-        final totalElapsedWithCurrentProgress =
-            elapsedSeconds + (progress * duration);
-        final fullCycles = (totalElapsedWithCurrentProgress / duration).floor();
-        final remainderSeconds = totalElapsedWithCurrentProgress % duration;
-        final cycleReward = generator.reward.value * count * duration;
+          final totalElapsedWithCurrentProgress =
+              elapsedSeconds + (progress * duration);
+          final fullCycles = (totalElapsedWithCurrentProgress / duration)
+              .floor();
+          final remainderSeconds = totalElapsedWithCurrentProgress % duration;
+          final cycleReward = upgrade.reward.value * count * duration;
 
-        totalEarnings += (fullCycles * cycleReward).toInt();
+          totalEarnings += (fullCycles * cycleReward).toInt();
 
-        newProgress[generatorId] = remainderSeconds / duration;
-        stateChanged = true;
+          newProgress[itemId] = remainderSeconds / duration;
+          stateChanged = true;
+        }
       }
     }
 
     final newState = stateChanged || totalEarnings > 0
         ? _copyWith(
             doubloons: doubloons + totalEarnings,
-            generatorsProgress: newProgress,
+            progress: newProgress,
           )
         : this;
 
@@ -93,32 +79,31 @@ class GameState {
   }
 
   int getMaxAffordable(Upgrade upgrade) {
-    final allGens = Upgrade.allGenerators;
-    final isGenerator = allGens.any((g) => g.id == upgrade.id);
-    final currentCount = isGenerator
-        ? (generators[upgrade.id] ?? 0)
-        : (upgrades[upgrade.id] ?? 0);
+    final currentCount = items[upgrade.id] ?? 0;
 
     return upgrade.getMaxAffordable(currentCount, doubloons);
   }
 
   int get clickPower {
     int power = 1; // Base power
-    for (final upgradeId in upgrades.keys) {
-      final count = upgrades[upgradeId] ?? 0;
-      final upgrade = Upgrade.equipment.firstWhere((u) => u.id == upgradeId);
-      power += upgrade.reward.value * count;
+    for (final itemId in items.keys) {
+      final count = items[itemId] ?? 0;
+      final upgrade = Upgrade.all.firstWhere((u) => u.id == itemId);
+      if (!upgrade.isGenerator) {
+        power += upgrade.reward.value * count;
+      }
     }
     return power;
   }
 
   int get passiveIncomePerSecond {
     int income = 0;
-    for (final generatorId in generators.keys) {
-      final count = generators[generatorId] ?? 0;
-      final allGens = Upgrade.allGenerators;
-      final generator = allGens.firstWhere((g) => g.id == generatorId);
-      income += generator.reward.value * count;
+    for (final itemId in items.keys) {
+      final count = items[itemId] ?? 0;
+      final upgrade = Upgrade.all.firstWhere((u) => u.id == itemId);
+      if (upgrade.isGenerator) {
+        income += upgrade.reward.value * count;
+      }
     }
     return income;
   }

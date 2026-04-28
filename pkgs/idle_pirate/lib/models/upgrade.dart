@@ -44,6 +44,8 @@ final class Upgrade {
     return math.max(0, k);
   }
 
+  bool get isGenerator => duration != null;
+
   static const sharperHooks = Upgrade(
     id: 'sharper_hooks',
     baseCost: Doubloon(10),

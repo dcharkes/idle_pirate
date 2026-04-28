@@ -113,7 +113,7 @@ void main() {
 
   test('Production Cycle: updates progress and awards income', () async {
     final box = await Hive.openBox('test_cycle');
-    await box.put('generators', {'cabin_boy': 1});
+    await box.put('items', {'cabin_boy': 1});
     await box.put('doubloons', 0);
 
     final controller = GameController(
@@ -123,12 +123,12 @@ void main() {
     );
 
     // Initial progress should be 0
-    expect(controller.state.generatorsProgress['cabin_boy'] ?? 0.0, 0.0);
+    expect(controller.state.progress['cabin_boy'] ?? 0.0, 0.0);
 
     // Tick once (33ms) -> Cabin Boy duration is 2s, so progress should be 0.033 / 2.0 = 0.0165
     controller.tick();
     expect(
-      controller.state.generatorsProgress['cabin_boy'],
+      controller.state.progress['cabin_boy'],
       closeTo(0.0165, 0.001),
     );
     expect(controller.state.doubloons, 0);
@@ -140,7 +140,7 @@ void main() {
 
     // Progress should reset to 0 and doubloons should be awarded
     expect(
-      controller.state.generatorsProgress['cabin_boy'],
+      controller.state.progress['cabin_boy'],
       closeTo(0.0, 0.02),
     );
     expect(
@@ -153,7 +153,7 @@ void main() {
 
   test('Fleet Production Cycle: updates progress and awards income', () async {
     final box = await Hive.openBox('test_fleet');
-    await box.put('generators', {'sloop': 1});
+    await box.put('items', {'sloop': 1});
     await box.put('doubloons', 0);
 
     final controller = GameController(
@@ -163,12 +163,12 @@ void main() {
     );
 
     // Initial progress should be 0
-    expect(controller.state.generatorsProgress['sloop'] ?? 0.0, 0.0);
+    expect(controller.state.progress['sloop'] ?? 0.0, 0.0);
 
     // Tick once (33ms) -> Sloop duration is 20s, so progress should be 0.033 / 20.0 = 0.00165
     controller.tick();
     expect(
-      controller.state.generatorsProgress['sloop'],
+      controller.state.progress['sloop'],
       closeTo(0.00165, 0.0001),
     );
     expect(controller.state.doubloons, 0);
@@ -179,7 +179,7 @@ void main() {
     }
 
     // Progress should reset to 0 and doubloons should be awarded
-    expect(controller.state.generatorsProgress['sloop'], closeTo(0.0, 0.02));
+    expect(controller.state.progress['sloop'], closeTo(0.0, 0.02));
     expect(
       controller.state.doubloons,
       10000,
