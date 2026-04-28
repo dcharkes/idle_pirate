@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../assets/images.dart';
 import '../../models/item.dart';
@@ -22,22 +21,11 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAvailableLanguages();
+    _loadLangs();
   }
 
-  Future<void> _loadAvailableLanguages() async {
-    final langs = <String>[];
-    for (final lang in allLanguages.keys) {
-      try {
-        await rootBundle.loadString(
-          'packages/idle_pirate/assets/translations/$lang.json',
-        );
-        langs.add(lang);
-      } catch (e) {
-        // Ignore failed loads
-      }
-    }
-    if (!langs.contains('en')) langs.add('en');
+  Future<void> _loadLangs() async {
+    final langs = await loadAvailableLanguages();
     setState(() {
       _availableLanguages = langs;
     });

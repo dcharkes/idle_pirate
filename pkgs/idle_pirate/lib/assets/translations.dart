@@ -28,6 +28,22 @@ Future<void> loadTranslations(String lang) async {
   }
 }
 
+Future<List<String>> loadAvailableLanguages() async {
+  final langs = <String>[];
+  for (final lang in allLanguages.keys) {
+    try {
+      await rootBundle.loadString(
+        'packages/idle_pirate/assets/translations/$lang.json',
+      );
+      langs.add(lang);
+    } catch (e) {
+      // Ignore failed loads
+    }
+  }
+  if (!langs.contains('en')) langs.add('en');
+  return langs;
+}
+
 // ignore: experimental_member_use
 @RecordUse()
 String translate(
