@@ -61,6 +61,7 @@ class GameController extends ChangeNotifier {
       final file = File('${tempDir.path}/$id.mp3');
       if (!file.existsSync()) {
         try {
+          // ignore: non_const_argument_for_const_parameter
           final sound = Sound(id);
           final data = await sound.load();
           final bytes = data.buffer.asUint8List(
@@ -121,7 +122,7 @@ class GameController extends ChangeNotifier {
     for (final upgradeId in _state.upgrades.keys) {
       final count = _state.upgrades[upgradeId] ?? 0;
       final upgrade = initialUpgrades.firstWhere((u) => u.id == upgradeId);
-      power += upgrade.benefit * count;
+      power += upgrade.benefit.value * count;
     }
     return power;
   }
@@ -132,7 +133,7 @@ class GameController extends ChangeNotifier {
       final count = _state.generators[generatorId] ?? 0;
       final allGens = [...initialGenerators, ...initialFleet];
       final generator = allGens.firstWhere((g) => g.id == generatorId);
-      income += generator.benefit * count;
+      income += generator.benefit.value * count;
     }
     return income;
   }
@@ -151,12 +152,12 @@ class GameController extends ChangeNotifier {
       if (count > 0) {
         final allGens = [...initialGenerators, ...initialFleet];
         final generator = allGens.firstWhere((g) => g.id == generatorId);
-        final duration = generator.duration!;
+        final duration = generator.duration!.inSeconds.toDouble();
         final currentProgress = _generatorsProgress[generatorId] ?? 0.0;
         final newProgress = currentProgress + (0.033 / duration);
 
         if (newProgress >= 1.0) {
-          final cycleReward = generator.benefit * count * duration;
+          final cycleReward = generator.benefit.value * count * duration;
           _state = _state.copyWith(
             doubloons: _state.doubloons + cycleReward.toInt(),
           );
@@ -190,7 +191,7 @@ class GameController extends ChangeNotifier {
           if (count > 0) {
             final allGens = [...initialGenerators, ...initialFleet];
             final generator = allGens.firstWhere((g) => g.id == generatorId);
-            final duration = generator.duration!;
+            final duration = generator.duration!.inSeconds.toDouble();
             final currentProgress = _generatorsProgress[generatorId] ?? 0.0;
 
             final totalElapsedWithCurrentProgress =
@@ -198,7 +199,7 @@ class GameController extends ChangeNotifier {
             final fullCycles = (totalElapsedWithCurrentProgress / duration)
                 .floor();
             final remainderSeconds = totalElapsedWithCurrentProgress % duration;
-            final cycleReward = generator.benefit * count * duration;
+            final cycleReward = generator.benefit.value * count * duration;
 
             totalOfflineEarnings += (fullCycles * cycleReward).toInt();
 
@@ -242,7 +243,7 @@ class GameController extends ChangeNotifier {
         : (_state.upgrades[upgrade.id] ?? 0);
     final r = 1.15;
     final cost =
-        upgrade.baseCost *
+        upgrade.baseCost.value *
         (math.pow(r, currentCount) * (math.pow(r, count) - 1)) /
         (r - 1);
     return cost.toInt();
@@ -312,7 +313,7 @@ class GameController extends ChangeNotifier {
         ? (_state.generators[upgrade.id] ?? 0)
         : (_state.upgrades[upgrade.id] ?? 0);
     final c = _state.doubloons;
-    final b = upgrade.baseCost;
+    final b = upgrade.baseCost.value;
     final r = 1.15;
     final n = currentCount;
 

@@ -193,7 +193,7 @@ class _GameScreenState extends State<GameScreen> {
                         title: Text(
                           '${translateDynamic(upgrade.id, 'upgrade')} ($ownedCount)',
                         ),
-                        subtitle: Text('+${upgrade.benefit} click power'),
+                        subtitle: Text('+${upgrade.benefit.value} click power'),
                         trailing: ElevatedButton(
                           onPressed: canAfford
                               ? () => widget.controller.buyUpgrades(
@@ -231,8 +231,8 @@ class _GameScreenState extends State<GameScreen> {
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
-                    final duration = generator.duration!;
-                    final cycleReward = generator.benefit * duration;
+                    final duration = generator.duration!.inSeconds.toDouble();
+                    final cycleReward = generator.benefit.value * duration;
 
                     return Card(
                       child: ListTile(
@@ -292,8 +292,8 @@ class _GameScreenState extends State<GameScreen> {
                         ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
                         : '${widget.controller.getBulkCost(generator, 1)} D';
 
-                    final duration = generator.duration!;
-                    final cycleReward = generator.benefit * duration;
+                    final duration = generator.duration!.inSeconds.toDouble();
+                    final cycleReward = generator.benefit.value * duration;
 
                     return Card(
                       child: ListTile(

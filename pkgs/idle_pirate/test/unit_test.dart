@@ -30,9 +30,8 @@ void main() {
 
     final upgrade = Upgrade(
       id: 'test_upgrade',
-      name: 'Test',
-      baseCost: 10,
-      benefit: 1,
+      baseCost: Doubloon(10),
+      benefit: Doubloon(1),
     );
 
     // N = 0, K = 1 -> cost should be 10
@@ -56,9 +55,8 @@ void main() {
     );
     final upgrade = Upgrade(
       id: 'test_upgrade',
-      name: 'Test',
-      baseCost: 10,
-      benefit: 1,
+      baseCost: Doubloon(10),
+      benefit: Doubloon(1),
     );
 
     expect(controller.getMaxAffordable(upgrade), 1);

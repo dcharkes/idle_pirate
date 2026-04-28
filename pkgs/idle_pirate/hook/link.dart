@@ -217,8 +217,13 @@ Future<void> _processAssets(
         print('Filtering out icon: ${asset.name}');
       }
     } else if (asset.name.startsWith('assets/sounds/')) {
-      print('Keeping sound: ${asset.name}');
-      output.assets.data.add(asset);
+      final id = filename.split('.').first;
+      if (usedSoundIds.contains(id)) {
+        print('Keeping sound: ${asset.name}');
+        output.assets.data.add(asset);
+      } else {
+        print('Filtering out sound: ${asset.name}');
+      }
     } else if (asset.name.startsWith('assets/translations/')) {
       final file = File.fromUri(asset.file);
       if (file.existsSync()) {
