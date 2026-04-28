@@ -33,7 +33,8 @@ class _GameScreenState extends State<GameScreen> {
       final assets = manifestMap.keys.toList();
       final langs = <String>[];
       for (final asset in assets) {
-        if (asset.startsWith('packages/idle_pirate/assets/translations/') && asset.endsWith('.json')) {
+        if (asset.startsWith('packages/idle_pirate/assets/translations/') &&
+            asset.endsWith('.json')) {
           final filename = asset.split('/').last;
           final lang = filename.split('.').first;
           langs.add(lang);
@@ -55,14 +56,22 @@ class _GameScreenState extends State<GameScreen> {
 
   String _getLanguageLabel(String lang) {
     switch (lang) {
-      case 'en': return '🇺🇸 EN';
-      case 'pirate_en': return '🏴‍☠️ EN';
-      case 'es': return '🇪🇸 ES';
-      case 'pirate_es': return '🏴‍☠️ ES';
-      case 'nl': return '🇳🇱 NL';
-      case 'pirate_nl': return '🏴‍☠️ NL';
-      case 'zh': return '🇨🇳 ZH';
-      default: return lang.toUpperCase();
+      case 'en':
+        return '🇺🇸 EN';
+      case 'pirate_en':
+        return '🏴‍☠️ EN';
+      case 'es':
+        return '🇪🇸 ES';
+      case 'pirate_es':
+        return '🏴‍☠️ ES';
+      case 'nl':
+        return '🇳🇱 NL';
+      case 'pirate_nl':
+        return '🏴‍☠️ NL';
+      case 'zh':
+        return '🇨🇳 ZH';
+      default:
+        return lang.toUpperCase();
     }
   }
 
@@ -181,7 +190,9 @@ class _GameScreenState extends State<GameScreen> {
                     return Card(
                       child: ListTile(
                         leading: _getDynamicIcon(upgrade.id),
-                        title: Text('${translateDynamic(upgrade.id, 'upgrade')} ($ownedCount)'),
+                        title: Text(
+                          '${translateDynamic(upgrade.id, 'upgrade')} ($ownedCount)',
+                        ),
                         subtitle: Text('+${upgrade.benefit} click power'),
                         trailing: ElevatedButton(
                           onPressed: canAfford
@@ -228,7 +239,9 @@ class _GameScreenState extends State<GameScreen> {
                     return Card(
                       child: ListTile(
                         leading: _getDynamicIcon(generator.id),
-                        title: Text('${translateDynamic(generator.id, 'crew')} ($ownedCount)'),
+                        title: Text(
+                          '${translateDynamic(generator.id, 'crew')} ($ownedCount)',
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -289,7 +302,9 @@ class _GameScreenState extends State<GameScreen> {
                     return Card(
                       child: ListTile(
                         leading: _getDynamicIcon(generator.id),
-                        title: Text('${translateDynamic(generator.id, 'fleet')} ($ownedCount)'),
+                        title: Text(
+                          '${translateDynamic(generator.id, 'fleet')} ($ownedCount)',
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

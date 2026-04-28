@@ -8,7 +8,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   final box = await Hive.openBox('game_state');
-  
+
   await loadTranslations('en');
 
   final controller = GameController(box: box);

@@ -9,7 +9,9 @@ Map<String, String> _translations = {};
 
 Future<void> loadTranslations(String lang) async {
   try {
-    final data = await rootBundle.load('packages/idle_pirate/assets/translations/$lang.json');
+    final data = await rootBundle.load(
+      'packages/idle_pirate/assets/translations/$lang.json',
+    );
     final jsonStr = utf8.decode(data.buffer.asUint8List());
     _translations = Map<String, String>.from(json.decode(jsonStr));
     currentLanguage = lang;

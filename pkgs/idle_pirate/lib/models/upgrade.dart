@@ -30,7 +30,6 @@ final class Upgrade {
   });
 }
 
-// Initial upgrades for Milestone 1
 const List<Upgrade> initialUpgrades = [
   Upgrade(id: 'sharper_hooks', name: 'Sharper Hooks', baseCost: 10, benefit: 1),
   Upgrade(
@@ -41,8 +40,6 @@ const List<Upgrade> initialUpgrades = [
   ),
   Upgrade(id: 'heavy_boots', name: 'Heavy Boots', baseCost: 5000, benefit: 25),
 ];
-
-// Passive Generators (The Crew) for Milestone 3
 const List<Upgrade> initialGenerators = [
   Upgrade(id: 'cabin_boy', name: 'Cabin Boy', baseCost: 15, benefit: 1),
   Upgrade(id: 'gunner', name: 'Gunner', baseCost: 500, benefit: 15),
@@ -53,8 +50,6 @@ const List<Upgrade> initialGenerators = [
     benefit: 100,
   ),
 ];
-
-// Passive Generators (The Fleet) for Milestone 4 (or extension)
 const List<Upgrade> initialFleet = [
   Upgrade(id: 'sloop', name: 'Sloop', baseCost: 50000, benefit: 500),
   Upgrade(

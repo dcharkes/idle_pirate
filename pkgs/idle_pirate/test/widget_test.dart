@@ -258,21 +258,21 @@ void main() {
       startTimer: false,
       enableAudio: false,
     );
-    
+
     setTranslationsForTesting({'doubloons': 'Doubloons'});
-    
+
     await tester.pumpWidget(MyApp(controller: controller));
-    
+
     expect(find.text('Doubloons: 0'), findsOneWidget);
-    
+
     // Mock new translations for Spanish
     setTranslationsForTesting({'doubloons': 'Doblones'});
-    
+
     // Re-pump widget to force rebuild with new translations
     await tester.pumpWidget(MyApp(controller: controller));
-    
+
     expect(find.text('Doblones: 0'), findsOneWidget);
-    
+
     await box.close();
   });
 }

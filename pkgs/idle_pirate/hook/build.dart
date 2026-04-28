@@ -61,8 +61,9 @@ void main(List<String> args) async {
             output.dependencies.add(file.uri);
             final filename = file.uri.pathSegments.last;
             final lang = filename.split('.').first;
-            
-            if (requestedLanguages != null && !requestedLanguages.contains(lang)) {
+
+            if (requestedLanguages != null &&
+                !requestedLanguages.contains(lang)) {
               // ignore: avoid_print
               print('Skipping translation file not requested: $filename');
               continue;
@@ -88,7 +89,7 @@ void main(List<String> args) async {
 Set<String>? _getRequestedLanguages(BuildInput input) {
   final requestedLanguages = input.userDefines['translations'];
   if (requestedLanguages == null) return null;
-  
+
   final list = <String>{};
   if (requestedLanguages is List) {
     list.addAll(requestedLanguages.cast<String>());

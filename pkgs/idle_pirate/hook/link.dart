@@ -30,7 +30,9 @@ void main(List<String> args) async {
     final dynamicIconDef = Class('DynamicIcon', uiLib);
     final upgradeDef = Class('Upgrade', modelsLib);
     final soundDef = Class('Sound', modelsLib);
-    final translationsLib = Library('package:idle_pirate/state/translations.dart');
+    final translationsLib = Library(
+      'package:idle_pirate/state/translations.dart',
+    );
     final translateMethod = Method('translate', translationsLib);
 
     // 1. Process StaticIcon records
@@ -153,7 +155,14 @@ void main(List<String> args) async {
     print('Icon sizes: $iconSizes');
     print('Used sound IDs: $usedSoundIds');
 
-    await _processAssets(input, output, iconSizes, usedSoundIds, usedTranslationKeys, usedUpgradeIds);
+    await _processAssets(
+      input,
+      output,
+      iconSizes,
+      usedSoundIds,
+      usedTranslationKeys,
+      usedUpgradeIds,
+    );
   });
 }
 
@@ -221,11 +230,11 @@ Future<void> _processAssets(
         final jsonStr = await file.readAsString();
         final jsonMap = Map<String, String>.from(json.decode(jsonStr));
         final filteredMap = <String, String>{};
-        
+
         for (final entry in jsonMap.entries) {
           final key = entry.key;
           final value = entry.value;
-          
+
           if (usedTranslationKeys.contains(key)) {
             filteredMap[key] = value;
           } else if (usedUpgradeIds.contains(key)) {
@@ -234,14 +243,16 @@ Future<void> _processAssets(
             print('Filtering out unused translation key: $key');
           }
         }
-        
+
         final filteredJsonStr = json.encode(filteredMap);
-        
+
         final outputFile = File.fromUri(assetsDir.uri.resolve(filename));
         await outputFile.writeAsString(filteredJsonStr);
-        
-        print('Filtered translation file: ${asset.name}, kept ${filteredMap.length}/${jsonMap.length} keys.');
-        
+
+        print(
+          'Filtered translation file: ${asset.name}, kept ${filteredMap.length}/${jsonMap.length} keys.',
+        );
+
         output.assets.data.add(
           DataAsset(
             package: asset.package,
