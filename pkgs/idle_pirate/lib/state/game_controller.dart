@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:hive/hive.dart';
 import 'package:mini_audio/mini_audio.dart';
+import '../assets/sounds.dart';
 import '../models/game_state.dart';
 import '../models/upgrade.dart';
 

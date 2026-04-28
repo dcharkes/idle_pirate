@@ -1,17 +1,4 @@
-import 'dart:typed_data';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:meta/meta.dart';
-
-// ignore: experimental_member_use
-@RecordUse()
-final class Sound {
-  final String id;
-  const Sound(this.id);
-
-  Future<ByteData> load() {
-    return rootBundle.load('assets/sounds/$id.mp3');
-  }
-}
 
 // ignore: experimental_member_use
 @RecordUse()
@@ -31,18 +18,38 @@ final class Upgrade {
 }
 
 const List<Upgrade> initialUpgrades = [
-  Upgrade(id: 'sharper_hooks', name: 'Sharper Hooks', baseCost: 10, benefit: 1),
+  Upgrade(
+    id: 'sharper_hooks',
+    name: 'Sharper Hooks',
+    baseCost: 10,
+    benefit: 1,
+  ),
   Upgrade(
     id: 'better_shovels',
     name: 'Better Shovels',
     baseCost: 500,
     benefit: 5,
   ),
-  Upgrade(id: 'heavy_boots', name: 'Heavy Boots', baseCost: 5000, benefit: 25),
+  Upgrade(
+    id: 'heavy_boots',
+    name: 'Heavy Boots',
+    baseCost: 5000,
+    benefit: 25,
+  ),
 ];
 const List<Upgrade> initialGenerators = [
-  Upgrade(id: 'cabin_boy', name: 'Cabin Boy', baseCost: 15, benefit: 1),
-  Upgrade(id: 'gunner', name: 'Gunner', baseCost: 500, benefit: 15),
+  Upgrade(
+    id: 'cabin_boy',
+    name: 'Cabin Boy',
+    baseCost: 15,
+    benefit: 1,
+  ),
+  Upgrade(
+    id: 'gunner',
+    name: 'Gunner',
+    baseCost: 500,
+    benefit: 15,
+  ),
   Upgrade(
     id: 'quartermaster',
     name: 'Quartermaster',
@@ -51,12 +58,22 @@ const List<Upgrade> initialGenerators = [
   ),
 ];
 const List<Upgrade> initialFleet = [
-  Upgrade(id: 'sloop', name: 'Sloop', baseCost: 50000, benefit: 500),
+  Upgrade(
+    id: 'sloop',
+    name: 'Sloop',
+    baseCost: 50000,
+    benefit: 500,
+  ),
   Upgrade(
     id: 'brigantine',
     name: 'Brigantine',
     baseCost: 250000,
     benefit: 3000,
   ),
-  Upgrade(id: 'frigate', name: 'Frigate', baseCost: 1000000, benefit: 15000),
+  Upgrade(
+    id: 'frigate',
+    name: 'Frigate',
+    baseCost: 1000000,
+    benefit: 15000,
+  ),
 ];
