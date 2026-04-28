@@ -44,25 +44,12 @@ class GameController extends ChangeNotifier {
   }
 
   Future<void> _extractAudioAssets() async {
-    final soundIds = [
-      'boot',
-      'coin',
-      'gunner',
-      'hook',
-      'raise the sails',
-      'shiver me timbers',
-      'shovel',
-      'yarr',
-    ];
-
     final tempDir = Directory.systemTemp;
 
-    for (final id in soundIds) {
-      final file = File('${tempDir.path}/$id.mp3');
+    for (final sound in Sound.all) {
+      final file = File('${tempDir.path}/${sound.id}.mp3');
       if (!file.existsSync()) {
         try {
-          // ignore: non_const_argument_for_const_parameter
-          final sound = Sound(id);
           final data = await sound.load();
           final bytes = data.buffer.asUint8List(
             data.offsetInBytes,
@@ -71,7 +58,7 @@ class GameController extends ChangeNotifier {
           await file.writeAsBytes(bytes);
         } catch (e) {
           // ignore: avoid_print
-          print('Asset $id not found or filtered out: $e');
+          print('Asset ${sound.id} not found or filtered out: $e');
         }
       }
     }
@@ -163,7 +150,7 @@ class GameController extends ChangeNotifier {
           );
           _generatorsProgress[generatorId] = 0.0;
           stateChanged = true;
-          _playSound(const Sound('coin'));
+          _playSound(Sound.coin);
         } else {
           _generatorsProgress[generatorId] = newProgress;
         }
@@ -229,7 +216,7 @@ class GameController extends ChangeNotifier {
 
   void clickChest() {
     _state = _state.copyWith(doubloons: _state.doubloons + clickPower);
-    _playSound(const Sound('coin'));
+    _playSound(Sound.coin);
     _saveState();
     notifyListeners();
   }
@@ -273,33 +260,8 @@ class GameController extends ChangeNotifier {
       }
 
       // Play sound based on upgrade ID
-      switch (upgrade.id) {
-        case 'sharper_hooks':
-          _playSound(const Sound('hook'));
-          break;
-        case 'better_shovels':
-          _playSound(const Sound('shovel'));
-          break;
-        case 'heavy_boots':
-          _playSound(const Sound('boot'));
-          break;
-        case 'gunner':
-          _playSound(const Sound('gunner'));
-          break;
-        case 'cabin_boy':
-          _playSound(const Sound('yarr'));
-          break;
-        case 'quartermaster':
-          _playSound(const Sound('shiver me timbers'));
-          break;
-        case 'sloop':
-        case 'brigantine':
-        case 'frigate':
-          _playSound(const Sound('raise the sails'));
-          break;
-        default:
-          _playSound(const Sound('coin'));
-      }
+      final sound = upgradeSounds[upgrade.id] ?? Sound.coin;
+      _playSound(sound);
 
       _saveState();
       notifyListeners();
