@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import '../../assets/images.dart';
 import '../../models/upgrade.dart';
 import '../../state/game_controller.dart';
-import '../../state/translations.dart';
+import '../../assets/translations.dart';
 
 class GameScreen extends StatefulWidget {
   final GameController controller;

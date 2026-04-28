@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:meta/meta.dart';
-// ignore: unused_import
-import 'package:record_use/record_use.dart';
 
 String currentLanguage = 'en';
 Map<String, String> _translations = {};

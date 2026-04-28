@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:idle_pirate/main.dart';
 import 'package:idle_pirate/state/game_controller.dart';
-import 'package:idle_pirate/state/translations.dart';
+import 'package:idle_pirate/assets/translations.dart';
 
 class FakeBox implements Box {
   final Map<dynamic, dynamic> _data = {};
