@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../assets/images.dart';
-import '../../models/upgrade.dart';
+import '../../models/item.dart';
 import '../../state/game_controller.dart';
 import '../../assets/translations.dart';
 
@@ -167,7 +167,7 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 32),
                   Text(translate('upgrades')),
                   const SizedBox(height: 8),
-                  ...Upgrade.equipment.map((upgrade) {
+                  ...Item.equipment.map((upgrade) {
                     final ownedCount = state.items[upgrade.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
@@ -206,7 +206,7 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 32),
                   Text(translate('crew_members')),
                   const SizedBox(height: 8),
-                  ...Upgrade.personnel.map((generator) {
+                  ...Item.personnel.map((generator) {
                     final ownedCount = state.items[generator.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;
@@ -262,7 +262,7 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 32),
                   Text(translate('fleet')),
                   const SizedBox(height: 8),
-                  ...Upgrade.fleet.map((generator) {
+                  ...Item.fleet.map((generator) {
                     final ownedCount = state.items[generator.id] ?? 0;
 
                     int amountToBuy = _selectedAmount;

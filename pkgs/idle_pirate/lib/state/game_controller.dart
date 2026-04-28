@@ -7,7 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:mini_audio/mini_audio.dart';
 import '../assets/sounds.dart';
 import '../models/game_state.dart';
-import '../models/upgrade.dart';
+import '../models/item.dart';
 
 class GameController extends ChangeNotifier {
   final Box _box;
@@ -157,14 +157,14 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void buyUpgrades(Upgrade upgrade, int count) {
-    final newState = _state.buyUpgrades(upgrade, count);
+  void buyUpgrades(Item item, int count) {
+    final newState = _state.buyUpgrades(item, count);
 
     if (newState != _state) {
       _state = newState;
 
       // Play sound based on upgrade ID
-      final sound = upgradeSounds[upgrade.id] ?? Sound.coin;
+      final sound = upgradeSounds[item.id] ?? Sound.coin;
       _playSound(sound);
 
       _saveState();
@@ -172,7 +172,7 @@ class GameController extends ChangeNotifier {
     }
   }
 
-  void buyUpgrade(Upgrade upgrade) {
-    buyUpgrades(upgrade, 1);
+  void buyUpgrade(Item item) {
+    buyUpgrades(item, 1);
   }
 }

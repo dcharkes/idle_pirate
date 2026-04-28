@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:idle_pirate/state/game_controller.dart';
-import 'package:idle_pirate/models/upgrade.dart';
+import 'package:idle_pirate/models/item.dart';
 
 void main() {
   setUpAll(() async {
@@ -23,7 +23,7 @@ void main() {
   test('Formula: getBulkCost calculates correctly', () async {
     final box = await Hive.openBox('test_cost');
 
-    final upgrade = Upgrade(
+    final upgrade = Item(
       id: 'test_upgrade',
       baseCost: Doubloon(10),
       reward: Doubloon(1),
@@ -48,7 +48,7 @@ void main() {
       startTimer: false,
       enableAudio: false,
     );
-    final upgrade = Upgrade(
+    final upgrade = Item(
       id: 'test_upgrade',
       baseCost: Doubloon(10),
       reward: Doubloon(1),
@@ -81,7 +81,7 @@ void main() {
     expect(controller.state.passiveIncomePerSecond, 0);
 
     // Buy a Cabin Boy (id: 'cabin_boy', reward: 1)
-    controller.buyUpgrades(Upgrade.cabinBoy, 1);
+    controller.buyUpgrades(Item.cabinBoy, 1);
 
     expect(controller.state.passiveIncomePerSecond, 1);
 

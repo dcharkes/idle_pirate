@@ -8,13 +8,13 @@ extension type const Doubloon(int value) {
 
 // ignore: experimental_member_use
 @RecordUse()
-final class Upgrade {
+final class Item {
   final String id;
   final Doubloon baseCost;
   final Doubloon reward;
   final Duration? duration;
 
-  const Upgrade({
+  const Item({
     // ignore: experimental_member_use
     @mustBeConst required this.id,
     required this.baseCost,
@@ -46,54 +46,54 @@ final class Upgrade {
 
   bool get isGenerator => duration != null;
 
-  static const sharperHooks = Upgrade(
+  static const sharperHooks = Item(
     id: 'sharper_hooks',
     baseCost: Doubloon(10),
     reward: Doubloon(1),
   );
-  static const betterShovels = Upgrade(
+  static const betterShovels = Item(
     id: 'better_shovels',
     baseCost: Doubloon(500),
     reward: Doubloon(5),
   );
-  static const heavyBoots = Upgrade(
+  static const heavyBoots = Item(
     id: 'heavy_boots',
     baseCost: Doubloon(5000),
     reward: Doubloon(25),
   );
 
-  static const cabinBoy = Upgrade(
+  static const cabinBoy = Item(
     id: 'cabin_boy',
     baseCost: Doubloon(15),
     reward: Doubloon(1),
     duration: Duration(seconds: 2),
   );
-  static const gunner = Upgrade(
+  static const gunner = Item(
     id: 'gunner',
     baseCost: Doubloon(500),
     reward: Doubloon(15),
     duration: Duration(seconds: 5),
   );
-  static const quartermaster = Upgrade(
+  static const quartermaster = Item(
     id: 'quartermaster',
     baseCost: Doubloon(8000),
     reward: Doubloon(100),
     duration: Duration(seconds: 10),
   );
 
-  static const sloop = Upgrade(
+  static const sloop = Item(
     id: 'sloop',
     baseCost: Doubloon(50000),
     reward: Doubloon(500),
     duration: Duration(seconds: 20),
   );
-  static const brigantine = Upgrade(
+  static const brigantine = Item(
     id: 'brigantine',
     baseCost: Doubloon(250000),
     reward: Doubloon(3000),
     duration: Duration(minutes: 1),
   );
-  static const frigate = Upgrade(
+  static const frigate = Item(
     id: 'frigate',
     baseCost: Doubloon(1000000),
     reward: Doubloon(15000),

@@ -1,4 +1,4 @@
-import 'upgrade.dart';
+import 'item.dart';
 
 class GameState {
   final int doubloons;
@@ -24,13 +24,13 @@ class GameState {
     );
   }
 
-  GameState buyUpgrades(Upgrade upgrade, int count) {
-    final currentCount = items[upgrade.id] ?? 0;
-    final cost = upgrade.getBulkCost(currentCount, count);
+  GameState buyUpgrades(Item item, int count) {
+    final currentCount = items[item.id] ?? 0;
+    final cost = item.getBulkCost(currentCount, count);
 
     if (doubloons >= cost && count > 0) {
       final newItems = Map<String, int>.from(items);
-      newItems[upgrade.id] = currentCount + count;
+      newItems[item.id] = currentCount + count;
       return _copyWith(
         doubloons: doubloons - cost,
         items: newItems,
@@ -48,9 +48,9 @@ class GameState {
     for (final itemId in items.keys) {
       final count = items[itemId] ?? 0;
       if (count > 0) {
-        final upgrade = Upgrade.all.firstWhere((u) => u.id == itemId);
-        if (upgrade.isGenerator) {
-          final duration = upgrade.duration!.inSeconds.toDouble();
+        final item = Item.all.firstWhere((u) => u.id == itemId);
+        if (item.isGenerator) {
+          final duration = item.duration!.inSeconds.toDouble();
           final progress = this.progress[itemId] ?? 0.0;
 
           final totalElapsedWithCurrentProgress =
@@ -58,7 +58,7 @@ class GameState {
           final fullCycles = (totalElapsedWithCurrentProgress / duration)
               .floor();
           final remainderSeconds = totalElapsedWithCurrentProgress % duration;
-          final cycleReward = upgrade.reward.value * count * duration;
+          final cycleReward = item.reward.value * count * duration;
 
           totalEarnings += (fullCycles * cycleReward).toInt();
 
@@ -78,19 +78,19 @@ class GameState {
     return newState;
   }
 
-  int getMaxAffordable(Upgrade upgrade) {
-    final currentCount = items[upgrade.id] ?? 0;
+  int getMaxAffordable(Item item) {
+    final currentCount = items[item.id] ?? 0;
 
-    return upgrade.getMaxAffordable(currentCount, doubloons);
+    return item.getMaxAffordable(currentCount, doubloons);
   }
 
   int get clickPower {
     int power = 1; // Base power
     for (final itemId in items.keys) {
       final count = items[itemId] ?? 0;
-      final upgrade = Upgrade.all.firstWhere((u) => u.id == itemId);
-      if (!upgrade.isGenerator) {
-        power += upgrade.reward.value * count;
+      final item = Item.all.firstWhere((u) => u.id == itemId);
+      if (!item.isGenerator) {
+        power += item.reward.value * count;
       }
     }
     return power;
@@ -100,9 +100,9 @@ class GameState {
     int income = 0;
     for (final itemId in items.keys) {
       final count = items[itemId] ?? 0;
-      final upgrade = Upgrade.all.firstWhere((u) => u.id == itemId);
-      if (upgrade.isGenerator) {
-        income += upgrade.reward.value * count;
+      final item = Item.all.firstWhere((u) => u.id == itemId);
+      if (item.isGenerator) {
+        income += item.reward.value * count;
       }
     }
     return income;
