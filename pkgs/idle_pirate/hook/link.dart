@@ -193,6 +193,7 @@ Future<void> _processAssets(
         final sizeStr = '${targetSize}x$targetSize';
 
         final sourceFile = File.fromUri(asset.file);
+        output.dependencies.add(sourceFile.uri);
         final outputFile = File.fromUri(assetsDir.uri.resolve(filename));
 
         if (await _shouldResize(sourceFile, outputFile)) {
@@ -218,6 +219,7 @@ Future<void> _processAssets(
       }
     } else if (asset.name.startsWith('assets/sounds/')) {
       final id = filename.split('.').first;
+      output.dependencies.add(asset.file);
       if (usedSoundIds.contains(id)) {
         print('Keeping sound: ${asset.name}');
         output.assets.data.add(asset);

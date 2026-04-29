@@ -9,9 +9,11 @@ void main(List<String> args) async {
         input.packageRoot.resolve('assets/images'),
       );
       if (assetsDir.existsSync()) {
+        output.dependencies.add(assetsDir.uri);
         final files = assetsDir.listSync();
         for (final file in files) {
           if (file is File) {
+            output.dependencies.add(file.uri);
             final filename = file.uri.pathSegments.last;
             output.assets.data.add(
               DataAsset(
@@ -31,9 +33,11 @@ void main(List<String> args) async {
         input.packageRoot.resolve('assets/sounds'),
       );
       if (soundsDir.existsSync()) {
+        output.dependencies.add(soundsDir.uri);
         final files = soundsDir.listSync();
         for (final file in files) {
           if (file is File) {
+            output.dependencies.add(file.uri);
             final filename = file.uri.pathSegments.last;
             output.assets.data.add(
               DataAsset(
