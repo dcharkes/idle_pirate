@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 
-import 'dart:convert';
 import 'dart:io';
+import 'package:pirate_speak/src/category_ids.dart';
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
 // ignore: experimental_member_use
@@ -62,22 +62,10 @@ void main(List<String> args) async {
     output.dependencies.addAll(soundDeps);
 
     // Produce and route category IDs to pirate_speak!
-    final categoryIdsFile = File.fromUri(
-      input.outputDirectoryShared.resolve('category_ids.json'),
-    );
-    final categoryIds = {
+    final categoryIds = PirateSpeakCategoryIds({
       'item': usedItems.toList(),
-    };
-    await categoryIdsFile.writeAsString(json.encode(categoryIds));
-
-    output.assets.data.add(
-      DataAsset(
-        file: categoryIdsFile.uri,
-        name: 'pirate_speak_category_ids',
-        package: 'pirate_speak',
-      ),
-      routing: ToLinkHook('pirate_speak'),
-    );
+    });
+    await categoryIds.sendToLinkHook(output, input.outputDirectoryShared);
 
     _handleOtherAssets(input.assets.data, output);
   });

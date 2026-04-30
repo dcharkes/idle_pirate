@@ -3,6 +3,7 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'package:pirate_speak/src/category_ids.dart';
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
 import 'package:record_use/record_use.dart';
@@ -30,24 +31,18 @@ void main(List<String> args) async {
     final usedCategories = _usedCategories(usages);
 
     // Read routed assets for category IDs!
-    final categoryIdsAssets = input.assets.assetsFromLinking
-        .where((e) => e.isDataAsset)
-        .map(DataAsset.fromEncoded)
-        .where((a) => a.name == 'pirate_speak_category_ids');
+    final categoryIdsList = await PirateSpeakCategoryIds.fromInput(input);
 
     final usedDynamicTranslations = <String>{};
     final receivedCategories = <String>{};
-    for (final asset in categoryIdsAssets) {
-      final file = File.fromUri(asset.file);
-      if (file.existsSync()) {
-        final jsonStr = await file.readAsString();
-        final map = json.decode(jsonStr) as Map<String, dynamic>;
-        for (final entry in map.entries) {
-          receivedCategories.add(entry.key);
-          usedDynamicTranslations.addAll(List<String>.from(entry.value));
-        }
-        print('Received category IDs for: ${map.keys.toList()}');
+    for (final categoryIds in categoryIdsList) {
+      for (final entry in categoryIds.categoryIds.entries) {
+        receivedCategories.add(entry.key);
+        usedDynamicTranslations.addAll(entry.value);
       }
+      print(
+        'Received category IDs for: ${categoryIds.categoryIds.keys.toList()}',
+      );
     }
 
     // Check for missing IDs for a used category!
