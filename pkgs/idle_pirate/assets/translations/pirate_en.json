@@ -1,7 +1,7 @@
 {
   "doubloons": "Pieces o' Eight",
   "per_second": "per glass",
-  "click_chest": "Heave Ho!",
+  "click_chest": "Plunder the Chest",
   "buy": "Plunder",
   "max": "All hands",
   "sharper_hooks": "Keen Hooks",
@@ -25,7 +25,11 @@
   "treasure_map": "Chart o' Gold",
   "click_power": "Heave Power",
   "app_title": "Idle Pirate",
-  "upgrades": "Booty Boosters:",
-  "crew_members": "Me Hearties:",
-  "fleet": "Ships o' War:"
+  "equipment": "Booty Boosters",
+  "crew_members": "Me Hearties",
+  "fleet": "Ships o' War",
+  "gain_doubloons": "Loot {count} Pieces o' Eight",
+  "income_per_second": "Booty: {amount} per glass",
+  "generator_reward": "+{amount} Pieces o' Eight every {seconds} glasses",
+  "click_power_reward": "+{amount} Heave Power"
 }

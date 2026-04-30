@@ -1,13 +1,10 @@
 {
   "doubloons": "Doblones de a Ocho",
   "per_second": "por ampolleta",
-  "click_chest": "¡Al abordaje!",
+  "click_chest": "Saquear Cofre",
   "buy": "Saquear",
   "max": "Toda la chusma",
   "app_title": "Pirata Corsario",
-  "upgrades": "Mejoras de Botín:",
-  "crew_members": "Camaradas:",
-  "fleet": "Flota de Guerra:",
   "click_power": "Fuerza de Abordaje",
   "sharper_hooks": "Ganchos Afilados",
   "better_shovels": "Mejores Palas",
@@ -27,5 +24,12 @@
   "davey_jones_locker": "El pozo de Davy Jones",
   "sea_monster": "Kraken",
   "mermaid_song": "Canto de Sirena",
-  "treasure_map": "Mapa del Tesoro"
+  "treasure_map": "Mapa del Tesoro",
+  "equipment": "Mejoras de Botín",
+  "crew_members": "Camaradas",
+  "fleet": "Flota de Guerra",
+  "gain_doubloons": "Saquea {count} Doblones de a Ocho",
+  "income_per_second": "Botín: {amount} por ampolleta",
+  "generator_reward": "+{amount} Doblones de a Ocho cada {seconds} ampolletas",
+  "click_power_reward": "+{amount} Fuerza de Abordaje"
 }

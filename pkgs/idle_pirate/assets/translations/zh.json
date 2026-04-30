@@ -1,13 +1,12 @@
 {
   "doubloons": "金币",
   "per_second": "每秒",
-  "click_chest": "点击宝箱",
+  "click_chest": "打开宝箱",
   "buy": "购买",
   "max": "最大",
   "app_title": "闲置海盗",
-  "upgrades": "升级:",
-  "crew_members": "船员:",
-  "fleet": "舰队:",
+  "crew_members": "船员",
+  "fleet": "舰队",
   "click_power": "点击力量",
   "sharper_hooks": "更锋利的钩子",
   "better_shovels": "更好的铲子",
@@ -27,5 +26,10 @@
   "davey_jones_locker": "戴维·琼斯的深渊",
   "sea_monster": "海怪",
   "mermaid_song": "美人鱼之歌",
-  "treasure_map": "藏宝图"
+  "treasure_map": "藏宝图",
+  "equipment": "装备",
+  "gain_doubloons": "获得 {count} 金币",
+  "income_per_second": "收入: 每秒 {amount}",
+  "generator_reward": "+{amount} 金币 每 {seconds}秒",
+  "click_power_reward": "+{amount} 点击力量"
 }

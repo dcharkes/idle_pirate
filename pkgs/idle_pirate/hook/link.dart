@@ -335,6 +335,16 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeImages(
   final outputAssets = <DataAsset>[];
   final dependencies = <Uri>{};
 
+  // Check for missing image assets
+  for (final id in usedImages.keys) {
+    final assetName = 'assets/images/$id.png';
+    if (!assets.any((a) => a.name == assetName)) {
+      throw StateError(
+        'Missing image asset for ID: $id. Expected $assetName',
+      );
+    }
+  }
+
   final outputDir = Directory.fromUri(baseOutputDir.resolve('images/'));
   if (!outputDir.existsSync()) {
     outputDir.createSync(recursive: true);
@@ -384,6 +394,15 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeImages(
   final outputAssets = <DataAsset>[];
   final dependencies = <Uri>{};
 
+  // Check for missing sound assets
+  for (final id in usedSounds) {
+    if (!assets.any((a) => a.name.startsWith('assets/sounds/$id.'))) {
+      throw StateError(
+        'Missing sound asset for ID: $id. Expected assets/sounds/$id.*',
+      );
+    }
+  }
+
   for (final asset in assets) {
     final filename = asset.name.split('/').last;
     final id = filename.split('.').first;
@@ -420,6 +439,16 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
     dependencies.add(file.uri);
     final jsonStr = await file.readAsString();
     final jsonMap = Map<String, String>.from(json.decode(jsonStr));
+
+    // Check for missing translation keys in ALL files
+    for (final key in usedTranslations) {
+      if (!jsonMap.containsKey(key)) {
+        throw StateError(
+          'Missing translation key in ${asset.name}: $key. You need to add it.',
+        );
+      }
+    }
+
     final filteredMap = <String, String>{};
 
     for (final entry in jsonMap.entries) {

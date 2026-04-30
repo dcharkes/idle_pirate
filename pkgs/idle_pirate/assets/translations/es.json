@@ -1,7 +1,7 @@
 {
   "doubloons": "Doblones",
   "per_second": "por segundo",
-  "click_chest": "Hacer Clic en el Cofre",
+  "click_chest": "Abrir Cofre",
   "buy": "Comprar",
   "max": "Máx",
   "sharper_hooks": "Ganchos Más Afilados",
@@ -25,7 +25,11 @@
   "treasure_map": "Mapa del Tesoro",
   "click_power": "Poder de Clic",
   "app_title": "Pirata Inactivo",
-  "upgrades": "Mejoras:",
-  "crew_members": "Tripulación:",
-  "fleet": "Flota:"
+  "gain_doubloons": "Gana {count} doblones",
+  "income_per_second": "Ingresos: {amount} por segundo",
+  "generator_reward": "+{amount} doblones cada {seconds}s",
+  "click_power_reward": "+{amount} poder de clic",
+  "equipment": "Equipo",
+  "crew_members": "Tripulación",
+  "fleet": "Flota"
 }

@@ -1,13 +1,10 @@
 {
   "doubloons": "Goudstukken",
   "per_second": "per glas",
-  "click_chest": "Enteren!",
+  "click_chest": "Plunder de Kist",
   "buy": "Rooven",
   "max": "Alle hens",
   "app_title": "Kapitein Kaper",
-  "upgrades": "Buit Boosters:",
-  "crew_members": "Makkers:",
-  "fleet": "Oorlogsvloot:",
   "click_power": "Enterkracht",
   "sharper_hooks": "Scherpe Haken",
   "better_shovels": "Goede Spades",
@@ -27,5 +24,12 @@
   "davey_jones_locker": "De diepte van Davy Jones",
   "sea_monster": "Kraken",
   "mermaid_song": "Zeemeerminzang",
-  "treasure_map": "Schatkaart"
+  "treasure_map": "Schatkaart",
+  "equipment": "Buit Boosters",
+  "crew_members": "Makkers",
+  "fleet": "Oorlogsvloot",
+  "gain_doubloons": "Buit {count} goudstukken",
+  "income_per_second": "Buit: {amount} per glas",
+  "generator_reward": "+{amount} goudstukken elke {seconds} glazen",
+  "click_power_reward": "+{amount} enterkracht"
 }
