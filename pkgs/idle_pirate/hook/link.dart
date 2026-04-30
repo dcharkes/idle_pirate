@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'package:data_assets/data_assets.dart';
@@ -449,7 +450,7 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
       }
     }
 
-    final filteredMap = <String, String>{};
+    final filteredMap = SplayTreeMap<String, String>();
 
     for (final entry in jsonMap.entries) {
       final key = entry.key;
@@ -462,7 +463,8 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
       }
     }
 
-    final filteredJsonStr = json.encode(filteredMap);
+    const encoder = JsonEncoder.withIndent('  ');
+    final filteredJsonStr = encoder.convert(filteredMap);
     final outputFile = File.fromUri(outputDir.uri.resolve(filename));
     await outputFile.writeAsString(filteredJsonStr);
 
