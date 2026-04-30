@@ -30,11 +30,12 @@ void main() {
       'doubloons': 'Doubloons',
       'click_power': 'Click Power',
       'per_second': 'per second',
-      'click_chest': 'Click Chest',
+      'click_chest': 'Open Chest',
+      'gain_doubloons': 'Gain {count} doubloons',
       'max': 'Max',
-      'equipment': 'Equipment:',
-      'crew_members': 'Crew Members:',
-      'fleet': 'Fleet:',
+      'equipment': 'Equipment',
+      'crew_members': 'Crew Members',
+      'fleet': 'Fleet',
       'sharper_hooks': 'Sharper Hooks',
       'better_shovels': 'Better Shovels',
       'heavy_boots': 'Heavy Boots',
@@ -64,8 +65,8 @@ void main() {
     // 3. Verify that our counter starts at 0.
     expect(find.text('Doubloons: 0'), findsOneWidget);
 
-    // 4. Tap the 'Click Chest' button and trigger a frame.
-    await tester.tap(find.text('Click Chest'));
+    // 4. Tap the 'Open Chest' button and trigger a frame.
+    await tester.tap(find.text('Open Chest'));
     await tester.pump();
 
     // 5. Verify that our counter has incremented.
@@ -87,7 +88,7 @@ void main() {
 
     // Click 10 times
     for (int i = 0; i < 10; i++) {
-      await tester.tap(find.text('Click Chest'));
+      await tester.tap(find.text('Open Chest'));
     }
     await tester.pump();
     expect(find.text('Doubloons: 10'), findsOneWidget);
@@ -98,10 +99,10 @@ void main() {
 
     // Doubloons should be 0
     expect(find.text('Doubloons: 0'), findsOneWidget);
-    expect(find.text('Click Power: 2'), findsOneWidget);
+    expect(find.text('Gain 2 doubloons'), findsOneWidget);
 
     // Click once, should get 2 doubloons
-    await tester.tap(find.text('Click Chest'));
+    await tester.tap(find.text('Open Chest'));
     await tester.pump();
     expect(find.text('Doubloons: 2'), findsOneWidget);
 
@@ -127,7 +128,7 @@ void main() {
 
     // Gain 10 doubloons
     for (int i = 0; i < 10; i++) {
-      await tester.tap(find.text('Click Chest'));
+      await tester.tap(find.text('Open Chest'));
     }
     await tester.pump();
     expect(find.text('Doubloons: 10'), findsOneWidget);
@@ -159,7 +160,7 @@ void main() {
 
     // Gain 15 doubloons to buy a Cabin Boy
     for (int i = 0; i < 15; i++) {
-      await tester.tap(find.text('Click Chest'));
+      await tester.tap(find.text('Open Chest'));
     }
     await tester.pump();
     expect(find.text('Doubloons: 15'), findsOneWidget);
@@ -181,7 +182,7 @@ void main() {
 
     final cabinBoyTile = find.ancestor(
       of: find.textContaining('Cabin Boy'),
-      matching: find.byType(ListTile),
+      matching: find.byType(Card),
     );
     final progressFinder = find.descendant(
       of: cabinBoyTile,
@@ -240,7 +241,7 @@ void main() {
 
     final sloopTile = find.ancestor(
       of: find.textContaining('Sloop'),
-      matching: find.byType(ListTile),
+      matching: find.byType(Card),
     );
     final progressFinder = find.descendant(
       of: sloopTile,

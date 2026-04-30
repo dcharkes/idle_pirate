@@ -86,7 +86,7 @@ class _GameScreenState extends State<GameScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const StaticIcon('doubloon', 30).image,
+                      const StaticIcon('doubloon', 50).image,
                       const SizedBox(width: 8),
                       Text(
                         '${translate('doubloons')}: ${state.doubloons.compact}',
@@ -96,62 +96,89 @@ class _GameScreenState extends State<GameScreen> {
                           color: Color(0xFFFFD700), // Gold color
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      const StaticIcon('doubloon', 50).image,
                     ],
                   ),
                   Text(
-                    '${translate('click_power')}: ${widget.controller.state.clickPower}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    'Income: ${Doubloon(widget.controller.state.passiveIncomePerSecond).compact} ${translate('per_second')}',
+                    translate('income_per_second').replaceAll(
+                      '{amount}',
+                      Doubloon(
+                        widget.controller.state.passiveIncomePerSecond,
+                      ).compact,
+                    ),
                     style: const TextStyle(color: Colors.white70, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  // Purchase Amount Selector
-                  SegmentedButton<int>(
-                    style: SegmentedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A2332),
-                      foregroundColor: Colors.white70,
-                      selectedBackgroundColor: const Color(0xFF2A3548),
-                      selectedForegroundColor: Colors.white,
-                    ),
-                    segments: [
-                      ButtonSegment(value: 1, label: Text('x1')),
-                      ButtonSegment(value: 10, label: Text('x10')),
-                      ButtonSegment(value: -1, label: Text(translate('max'))),
-                    ],
-                    selected: {_selectedAmount},
-                    onSelectionChanged: (Set<int> newSelection) {
-                      setState(() {
-                        _selectedAmount = newSelection.first;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFD700), // Gold color
-                      foregroundColor: Colors.black, // Black text
-                    ),
-                    onPressed: widget.controller.clickChest,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const StaticIcon('chest', 40).image,
-                          const SizedBox(width: 8),
-                          Text(
-                            translate('click_chest'),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const StaticIcon('chest', 70).image,
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(
+                              0xFFFFD700,
+                            ), // Gold color
+                            foregroundColor: Colors.black, // Black text
+                          ),
+                          onPressed: widget.controller.clickChest,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  translate('click_chest'),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  translate('gain_doubloons').replaceAll(
+                                    '{count}',
+                                    widget.controller.state.clickPower
+                                        .toString(),
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 12),
+                        const StaticIcon('chest', 70).image,
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Purchase Amount Selector
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: SegmentedButton<int>(
+                      style: SegmentedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1A2332),
+                        foregroundColor: Colors.white70,
+                        selectedBackgroundColor: const Color(0xFF2A3548),
+                        selectedForegroundColor: Colors.white,
                       ),
+                      segments: [
+                        ButtonSegment(value: 1, label: Text('x1')),
+                        ButtonSegment(value: 10, label: Text('x10')),
+                        ButtonSegment(value: -1, label: Text(translate('max'))),
+                      ],
+                      selected: {_selectedAmount},
+                      onSelectionChanged: (Set<int> newSelection) {
+                        setState(() {
+                          _selectedAmount = newSelection.first;
+                        });
+                      },
                     ),
                   ),
                   ItemGroup(
@@ -272,10 +299,12 @@ class ItemTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '+${Doubloon(cycleReward.toInt()).compact} doubloons every ${duration.toInt()}s',
+            translate('generator_reward')
+                .replaceAll('{amount}', Doubloon(cycleReward.toInt()).compact)
+                .replaceAll('{seconds}', duration.toInt().toString()),
             style: const TextStyle(color: Colors.white70),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           LinearProgressIndicator(
             value: state.progress[item] ?? 0.0,
           ),
@@ -283,24 +312,52 @@ class ItemTile extends StatelessWidget {
       );
     } else {
       subtitle = Text(
-        '+${item.reward.value} click power',
+        translate(
+          'click_power_reward',
+        ).replaceAll('{amount}', item.reward.value.toString()),
         style: const TextStyle(color: Colors.white70),
       );
     }
 
     return Card(
-      color: const Color(0xFF1A2332), // Dark card color
-      child: ListTile(
-        leading: DynamicIcon(item.id, 40, 'item').image,
-        title: Text(
-          '${translateDynamic(item.id, 'item')} ($ownedCount)',
-          style: const TextStyle(color: Colors.white),
-        ),
-        subtitle: subtitle,
-        trailing: ElevatedButton(
-          onPressed: canAfford ? () => onBuy(amountToBuy) : null,
-          child: Text(costText),
-        ),
+      color: const Color(0xFF1A2332),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          DynamicIcon(item.id, 60, 'item').image,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${translateDynamic(item.id, 'item')} ($ownedCount)',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle,
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFD700),
+                foregroundColor: Colors.black,
+                disabledBackgroundColor: Colors.grey.shade700,
+                disabledForegroundColor: Colors.white38,
+              ),
+              onPressed: canAfford ? () => onBuy(amountToBuy) : null,
+              child: Text(costText),
+            ),
+          ),
+        ],
       ),
     );
   }

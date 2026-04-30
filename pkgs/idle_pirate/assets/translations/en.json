@@ -1,7 +1,7 @@
 {
   "doubloons": "Doubloons",
   "per_second": "per second",
-  "click_chest": "Click Chest",
+  "click_chest": "Open Chest",
   "buy": "Buy",
   "max": "Max",
   "sharper_hooks": "Sharper Hooks",
@@ -25,7 +25,11 @@
   "treasure_map": "Treasure Map",
   "click_power": "Click Power",
   "app_title": "Idle Pirate",
-  "upgrades": "Upgrades:",
-  "crew_members": "Crew Members:",
-  "fleet": "Fleet:"
+  "gain_doubloons": "Gain {count} doubloons",
+  "income_per_second": "Income: {amount} per second",
+  "generator_reward": "+{amount} doubloons every {seconds}s",
+  "click_power_reward": "+{amount} click power",
+  "equipment": "Equipment",
+  "crew_members": "Crew Members",
+  "fleet": "Fleet"
 }

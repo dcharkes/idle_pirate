@@ -1,7 +1,7 @@
 {
   "doubloons": "Dubloenen",
   "per_second": "per seconde",
-  "click_chest": "Klik op de Kist",
+  "click_chest": "Open Kist",
   "buy": "Kopen",
   "max": "Max",
   "sharper_hooks": "Scherpere Haken",
@@ -25,7 +25,11 @@
   "treasure_map": "Schatkaart",
   "click_power": "Klikkracht",
   "app_title": "Inactieve Piraat",
-  "upgrades": "Upgrades:",
-  "crew_members": "Bemanningsleden:",
-  "fleet": "Vloot:"
+  "gain_doubloons": "Verdien {count} dubloenen",
+  "income_per_second": "Inkomen: {amount} per seconde",
+  "generator_reward": "+{amount} dubloenen elke {seconds}s",
+  "click_power_reward": "+{amount} klikkracht",
+  "equipment": "Uitrusting",
+  "crew_members": "Bemanningsleden",
+  "fleet": "Vloot"
 }
