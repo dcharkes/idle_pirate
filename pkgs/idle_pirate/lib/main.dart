@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'state/game_controller.dart';
-import 'assets/translations.dart';
+import 'package:pirate_speak/pirate_speak.dart';
 import 'ui/screens/game_screen.dart';
 
 void main() async {

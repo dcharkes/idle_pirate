@@ -4,7 +4,7 @@ import '../../assets/images.dart';
 import '../../models/item.dart';
 import '../../models/game_state.dart';
 import '../../state/game_controller.dart';
-import '../../assets/translations.dart';
+import 'package:pirate_speak/pirate_speak.dart';
 
 class GameScreen extends StatefulWidget {
   final GameController controller;

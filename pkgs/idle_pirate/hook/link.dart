@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'package:data_assets/data_assets.dart';
@@ -12,16 +11,11 @@ import 'package:record_use/record_use.dart';
 const _assetsLib = Library('package:idle_pirate/assets/images.dart');
 const _modelsLib = Library('package:idle_pirate/models/item.dart');
 const _soundsLib = Library('package:idle_pirate/assets/sounds.dart');
-const _translationsLib = Library(
-  'package:idle_pirate/assets/translations.dart',
-);
 
 const _staticIconDef = Class('StaticIcon', _assetsLib);
 const _dynamicIconDef = Class('DynamicIcon', _assetsLib);
 const _itemDef = Class('Item', _modelsLib);
 const _soundDef = Class('Sound', _soundsLib);
-const _translateMethod = Method('translate', _translationsLib);
-const _translateDynamicMethod = Method('translateDynamic', _translationsLib);
 
 const _itemCategory = 'item';
 
@@ -41,24 +35,14 @@ void main(List<String> args) async {
     final usedStaticImages = _usedStaticImages(usages);
     final usedItems = _usedItems(usages);
     final usedSounds = _usedSounds(usages);
-    final usedStaticTranslations = _usedStaticTranslations(usages);
 
     final idsPerCategory = {_itemCategory: usedItems};
 
     final usedDynamicImages = _usedDynamicImages(usages, idsPerCategory);
-    final usedDynamicTranslations = _usedDynamicTranslations(
-      usages,
-      idsPerCategory,
-    );
 
     final usedImages = {...usedStaticImages, ...usedDynamicImages};
-    final usedTranslations = {
-      ...usedStaticTranslations,
-      ...usedDynamicTranslations,
-    };
 
     final imageAssets = _imageAssets(input.assets.data);
-    final translationAssets = _translationAssets(input.assets.data);
     final soundAssets = _soundAssets(input.assets.data);
 
     final (handledImages, imageDeps) = await _treeShakeImages(
@@ -70,19 +54,30 @@ void main(List<String> args) async {
       soundAssets,
       usedSounds,
     );
-    final (handledTranslations, translationDeps) = await _treeShakeTranslations(
-      translationAssets,
-      usedTranslations,
-      input.outputDirectoryShared,
-    );
 
     output.assets.data.addAll(handledImages);
     output.assets.data.addAll(handledSounds);
-    output.assets.data.addAll(handledTranslations);
 
     output.dependencies.addAll(imageDeps);
     output.dependencies.addAll(soundDeps);
-    output.dependencies.addAll(translationDeps);
+
+    // Produce and route category IDs to pirate_speak!
+    final categoryIdsFile = File.fromUri(
+      input.outputDirectoryShared.resolve('category_ids.json'),
+    );
+    final categoryIds = {
+      'item': usedItems.toList(),
+    };
+    await categoryIdsFile.writeAsString(json.encode(categoryIds));
+
+    output.assets.data.add(
+      DataAsset(
+        file: categoryIdsFile.uri,
+        name: 'pirate_speak_category_ids',
+        package: 'pirate_speak',
+      ),
+      routing: ToLinkHook('pirate_speak'),
+    );
 
     _handleOtherAssets(input.assets.data, output);
   });
@@ -246,70 +241,8 @@ Set<String> _usedSounds(Recordings usages) {
   return usedSoundIds;
 }
 
-Set<String> _usedStaticTranslations(Recordings usages) {
-  final usedTranslationKeys = <String>{};
-  final translateCalls = usages.calls[_translateMethod];
-  if (translateCalls == null) {
-    throw StateError(
-      'No recordings found for $_translateMethod. You need to handle this in the link hook.',
-    );
-  }
-  for (final call in translateCalls) {
-    switch (call) {
-      case CallWithArguments(
-        positionalArguments: [StringConstant(value: final key), ...],
-      ):
-        usedTranslationKeys.add(key);
-      case _:
-        throw StateError(
-          'Cannot safely parse translate call: $call. You need to handle this in the link hook.',
-        );
-    }
-  }
-  return usedTranslationKeys;
-}
-
-Set<String> _usedDynamicTranslations(
-  Recordings usages,
-  Map<String, Set<String>> idsPerCategory,
-) {
-  final usedTranslations = <String>{};
-  final usedCategories = <String>{};
-  final translateCalls = usages.calls[_translateDynamicMethod];
-  if (translateCalls == null) {
-    throw StateError(
-      'No recordings found for $_translateDynamicMethod. You need to handle this in the link hook.',
-    );
-  }
-  for (final call in translateCalls) {
-    switch (call) {
-      case CallWithArguments(
-        positionalArguments: [_, StringConstant(value: final category), ...],
-      ):
-        usedCategories.add(category);
-        if (!idsPerCategory.containsKey(category)) {
-          throw StateError(
-            'Unknown category in translateDynamic: $category. You need to handle this in the link hook.',
-          );
-        }
-        usedTranslations.addAll(idsPerCategory[category] ?? {});
-      case _:
-        throw StateError(
-          'Cannot safely parse translateDynamic call: $call. You need to handle this in the link hook.',
-        );
-    }
-  }
-
-  _checkCategories(usedCategories, '$_translateDynamicMethod');
-
-  return usedTranslations;
-}
-
 Iterable<DataAsset> _imageAssets(Iterable<DataAsset> assets) =>
     assets.where((a) => a.name.startsWith('assets/images/'));
-
-Iterable<DataAsset> _translationAssets(Iterable<DataAsset> assets) =>
-    assets.where((a) => a.name.startsWith('assets/translations/'));
 
 Iterable<DataAsset> _soundAssets(Iterable<DataAsset> assets) =>
     assets.where((a) => a.name.startsWith('assets/sounds/'));
@@ -415,70 +348,6 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeImages(
     } else {
       print('Filtering out sound: ${asset.name}');
     }
-  }
-  return (outputAssets, dependencies);
-}
-
-Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
-  Iterable<DataAsset> assets,
-  Set<String> usedTranslations,
-  Uri baseOutputDir,
-) async {
-  final outputAssets = <DataAsset>[];
-  final dependencies = <Uri>{};
-
-  final outputDir = Directory.fromUri(baseOutputDir.resolve('translations/'));
-  if (!outputDir.existsSync()) {
-    outputDir.createSync(recursive: true);
-  }
-
-  for (final asset in assets) {
-    final filename = asset.name.split('/').last;
-    final file = File.fromUri(asset.file);
-    if (!file.existsSync()) continue;
-
-    dependencies.add(file.uri);
-    final jsonStr = await file.readAsString();
-    final jsonMap = Map<String, String>.from(json.decode(jsonStr));
-
-    // Check for missing translation keys in ALL files
-    for (final key in usedTranslations) {
-      if (!jsonMap.containsKey(key)) {
-        throw StateError(
-          'Missing translation key in ${asset.name}: $key. You need to add it.',
-        );
-      }
-    }
-
-    final filteredMap = SplayTreeMap<String, String>();
-
-    for (final entry in jsonMap.entries) {
-      final key = entry.key;
-      final value = entry.value;
-
-      if (usedTranslations.contains(key)) {
-        filteredMap[key] = value;
-      } else {
-        print('Filtering out unused translation key: $key');
-      }
-    }
-
-    const encoder = JsonEncoder.withIndent('  ');
-    final filteredJsonStr = encoder.convert(filteredMap);
-    final outputFile = File.fromUri(outputDir.uri.resolve(filename));
-    await outputFile.writeAsString(filteredJsonStr);
-
-    print(
-      'Filtered translation file: ${asset.name}, kept ${filteredMap.length}/${jsonMap.length} keys.',
-    );
-
-    outputAssets.add(
-      DataAsset(
-        package: asset.package,
-        name: asset.name,
-        file: outputFile.uri,
-      ),
-    );
   }
   return (outputAssets, dependencies);
 }
