@@ -9,10 +9,9 @@ import 'package:mini_audio/src/c_library.dart';
 void main(List<String> args) async {
   await build(args, (input, output) async {
     if (input.config.buildCodeAssets) {
-      await getCLibrary(input.config.code.targetOS).build(
-        input: input,
-        output: output,
-      );
+      await getCLibrary(
+        input.config.code.targetOS,
+      ).build(input: input, output: output);
     }
   });
 }

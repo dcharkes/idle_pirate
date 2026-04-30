@@ -15,9 +15,16 @@ CLibrary getCLibrary(OS targetOS) {
     assetName: 'src/third_party/miniaudio.g.dart',
     sources: ['third_party/miniaudio.m'],
     frameworks: isIOS ? ['AVFoundation', 'AudioToolbox', 'Foundation'] : [],
-    flags: isIOS ? ['-framework', 'AVFoundation', '-framework', 'AudioToolbox', '-framework', 'Foundation'] : [],
-    defines: {
-      if (targetOS == OS.windows) 'MA_API': '__declspec(dllexport)',
-    },
+    flags: isIOS
+        ? [
+            '-framework',
+            'AVFoundation',
+            '-framework',
+            'AudioToolbox',
+            '-framework',
+            'Foundation',
+          ]
+        : [],
+    defines: {if (targetOS == OS.windows) 'MA_API': '__declspec(dllexport)'},
   );
 }
