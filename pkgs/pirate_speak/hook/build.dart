@@ -7,39 +7,69 @@ import 'package:hooks/hooks.dart';
 void main(List<String> args) async {
   await build(args, (BuildInput input, BuildOutputBuilder output) async {
     print('linkingEnabled: ${input.config.linkingEnabled}');
-    final dir = Directory('assets/translations/');
-    if (!dir.existsSync()) {
-      print('Translations directory not found: ${dir.path}');
-      return;
-    }
 
     final requestedLanguages = _getRequestedLanguages(input);
 
-    for (final file in dir.listSync()) {
+    final allAssets = _discoverAssets(
+      input.packageRoot,
+      input.packageName,
+      'assets/translations',
+    );
+
+    final assets = _filterByLanguage(allAssets, requestedLanguages);
+
+    output.dependencies.addAll(assets.map((a) => a.file));
+
+    for (final asset in assets) {
+      output.assets.data.add(
+        asset,
+        routing: input.config.linkingEnabled
+            ? ToLinkHook(input.packageName)
+            : const ToAppBundle(),
+      );
+    }
+  });
+}
+
+List<DataAsset> _discoverAssets(
+  Uri packageRoot,
+  String packageName,
+  String path,
+) {
+  final assets = <DataAsset>[];
+  final dir = Directory.fromUri(
+    packageRoot.resolve(path),
+  );
+  if (dir.existsSync()) {
+    final files = dir.listSync();
+    for (final file in files) {
       if (file is File && file.path.endsWith('.json')) {
         final filename = file.uri.pathSegments.last;
-        final name = 'assets/translations/$filename';
-        final lang = filename.split('.').first;
-
-        if (requestedLanguages != null && !requestedLanguages.contains(lang)) {
-          print('Skipping translation file not requested: $filename');
-          continue;
-        }
-
-        print('Reporting asset: $name');
-        output.assets.data.add(
+        assets.add(
           DataAsset(
-            package: 'pirate_speak',
-            name: name,
+            package: packageName,
+            name: '$path/$filename',
             file: file.absolute.uri,
           ),
-          routing: input.config.linkingEnabled
-              ? ToLinkHook(input.packageName)
-              : const ToAppBundle(),
         );
       }
     }
-  });
+  }
+  return assets;
+}
+
+List<DataAsset> _filterByLanguage(
+  List<DataAsset> assets,
+  Set<String>? requestedLanguages,
+) {
+  return assets.where((a) {
+    final lang = a.name.split('/').last.split('.').first;
+    if (requestedLanguages != null && !requestedLanguages.contains(lang)) {
+      print('Skipping translation file not requested: ${a.name}');
+      return false;
+    }
+    return true;
+  }).toList();
 }
 
 Set<String>? _getRequestedLanguages(BuildInput input) {
