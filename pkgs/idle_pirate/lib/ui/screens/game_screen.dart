@@ -47,40 +47,149 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0C1017),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0C1017),
-        elevation: 0,
-        // Title is hidden as requested!
-        actions: [
-          DropdownButton<String>(
-            value: currentLanguage,
-            items: _availableLanguages.map((lang) {
-              return DropdownMenuItem(
-                value: lang,
-                child: Text(_getLanguageLabel(lang)),
-              );
-            }).toList(),
-            onChanged: (String? newValue) async {
-              if (newValue != null) {
-                await loadTranslations(newValue);
-                setState(() {});
-              }
-            },
+      body: Stack(
+        children: [
+          // Main Content
+          Padding(
+            padding: const EdgeInsets.only(top: 70.0, left: 16.0, right: 16.0),
+            child: ListenableBuilder(
+              listenable: widget.controller,
+              builder: (context, child) {
+                final state = widget.controller.state;
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        translate('income_per_second').replaceAll(
+                          '{amount}',
+                          Doubloon(
+                            widget.controller.state.passiveIncomePerSecond,
+                          ).compact,
+                        ),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const StaticIcon('chest', 70).image,
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(
+                                  0xFFFFD700,
+                                ), // Gold color
+                                foregroundColor: Colors.black, // Black text
+                              ),
+                              onPressed: widget.controller.clickChest,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      translate('click_chest'),
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      translate('gain_doubloons').replaceAll(
+                                        '{count}',
+                                        widget.controller.state.clickPower
+                                            .toString(),
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const StaticIcon('chest', 70).image,
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Purchase Amount Selector
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: SegmentedButton<int>(
+                          style: SegmentedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1A2332),
+                            foregroundColor: Colors.white70,
+                            selectedBackgroundColor: const Color(0xFF2A3548),
+                            selectedForegroundColor: Colors.white,
+                          ),
+                          segments: [
+                            ButtonSegment(value: 1, label: Text('x1')),
+                            ButtonSegment(value: 10, label: Text('x10')),
+                            ButtonSegment(
+                              value: -1,
+                              label: Text(translate('max')),
+                            ),
+                          ],
+                          selected: {_selectedAmount},
+                          onSelectionChanged: (Set<int> newSelection) {
+                            setState(() {
+                              _selectedAmount = newSelection.first;
+                            });
+                          },
+                        ),
+                      ),
+                      ItemGroup(
+                        title: translate('equipment'),
+                        items: Item.equipment,
+                        state: state,
+                        selectedAmount: _selectedAmount,
+                        onBuy: (item, amount) =>
+                            widget.controller.buyUpgrades(item, amount),
+                      ),
+                      ItemGroup(
+                        title: translate('crew_members'),
+                        items: Item.personnel,
+                        state: state,
+                        selectedAmount: _selectedAmount,
+                        onBuy: (item, amount) =>
+                            widget.controller.buyUpgrades(item, amount),
+                      ),
+                      ItemGroup(
+                        title: translate('fleet'),
+                        items: Item.fleet,
+                        state: state,
+                        selectedAmount: _selectedAmount,
+                        onBuy: (item, amount) =>
+                            widget.controller.buyUpgrades(item, amount),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: ListenableBuilder(
-        listenable: widget.controller,
-        builder: (context, child) {
-          final state = widget.controller.state;
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+          // Fixed Header (Doubloons)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: const Color(0xFF0C1017),
+              padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
+              child: ListenableBuilder(
+                listenable: widget.controller,
+                builder: (context, child) {
+                  final state = widget.controller.state;
+                  return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const StaticIcon('doubloon', 50).image,
@@ -90,123 +199,44 @@ class _GameScreenState extends State<GameScreen> {
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFD700), // Gold color
+                          color: Color(0xFFFFD700),
                         ),
                       ),
                       const SizedBox(width: 8),
                       const StaticIcon('doubloon', 50).image,
                     ],
-                  ),
-                  Text(
-                    translate('income_per_second').replaceAll(
-                      '{amount}',
-                      Doubloon(
-                        widget.controller.state.passiveIncomePerSecond,
-                      ).compact,
-                    ),
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const StaticIcon('chest', 70).image,
-                        const SizedBox(width: 12),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(
-                              0xFFFFD700,
-                            ), // Gold color
-                            foregroundColor: Colors.black, // Black text
-                          ),
-                          onPressed: widget.controller.clickChest,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  translate('click_chest'),
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  translate('gain_doubloons').replaceAll(
-                                    '{count}',
-                                    widget.controller.state.clickPower
-                                        .toString(),
-                                  ),
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const StaticIcon('chest', 70).image,
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Purchase Amount Selector
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: SegmentedButton<int>(
-                      style: SegmentedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A2332),
-                        foregroundColor: Colors.white70,
-                        selectedBackgroundColor: const Color(0xFF2A3548),
-                        selectedForegroundColor: Colors.white,
-                      ),
-                      segments: [
-                        ButtonSegment(value: 1, label: Text('x1')),
-                        ButtonSegment(value: 10, label: Text('x10')),
-                        ButtonSegment(value: -1, label: Text(translate('max'))),
-                      ],
-                      selected: {_selectedAmount},
-                      onSelectionChanged: (Set<int> newSelection) {
-                        setState(() {
-                          _selectedAmount = newSelection.first;
-                        });
-                      },
-                    ),
-                  ),
-                  ItemGroup(
-                    title: translate('equipment'),
-                    items: Item.equipment,
-                    state: state,
-                    selectedAmount: _selectedAmount,
-                    onBuy: (item, amount) =>
-                        widget.controller.buyUpgrades(item, amount),
-                  ),
-                  ItemGroup(
-                    title: translate('crew_members'),
-                    items: Item.personnel,
-                    state: state,
-                    selectedAmount: _selectedAmount,
-                    onBuy: (item, amount) =>
-                        widget.controller.buyUpgrades(item, amount),
-                  ),
-                  ItemGroup(
-                    title: translate('fleet'),
-                    items: Item.fleet,
-                    state: state,
-                    selectedAmount: _selectedAmount,
-                    onBuy: (item, amount) =>
-                        widget.controller.buyUpgrades(item, amount),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
-          );
-        },
+          ),
+          // Floating Language Selector
+          Positioned(
+            top: 16,
+            right: 16,
+            child: DropdownButton<String>(
+              value: currentLanguage,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+              dropdownColor: const Color(0xFF1A2332),
+              underline: const SizedBox(),
+              items: _availableLanguages.map((lang) {
+                return DropdownMenuItem(
+                  value: lang,
+                  child: Text(
+                    _getLanguageLabel(lang),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? newValue) async {
+                if (newValue != null) {
+                  await loadTranslations(newValue);
+                  setState(() {});
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
