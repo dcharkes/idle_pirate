@@ -32,7 +32,7 @@ void main() {
       'per_second': 'per second',
       'click_chest': 'Click Chest',
       'max': 'Max',
-      'upgrades': 'Upgrades:',
+      'equipment': 'Equipment:',
       'crew_members': 'Crew Members:',
       'fleet': 'Fleet:',
       'sharper_hooks': 'Sharper Hooks',
@@ -221,11 +221,11 @@ void main() {
     );
     await tester.pumpWidget(MyApp(controller: controller));
 
-    expect(find.text('Doubloons: 50000'), findsOneWidget);
+    expect(find.text('Doubloons: 50.0K'), findsOneWidget);
 
     // Buy Sloop (cost 50000)
-    await tester.ensureVisible(find.text('50000 D'));
-    await tester.tap(find.text('50000 D'));
+    await tester.ensureVisible(find.text('50.0K D'));
+    await tester.tap(find.text('50.0K D'));
     await tester.pump();
 
     // Doubloons should be 0

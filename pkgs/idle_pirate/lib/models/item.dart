@@ -4,6 +4,14 @@ import 'package:meta/meta.dart';
 extension type const Doubloon(int value) {
   Doubloon operator *(int multiplier) => Doubloon(value * multiplier);
   Doubloon operator +(Doubloon other) => Doubloon(value + other.value);
+
+  String get compact {
+    if (value < 1000) return '$value';
+    if (value < 1000000) return '${(value / 1000).toStringAsFixed(1)}K';
+    if (value < 1000000000) return '${(value / 1000000).toStringAsFixed(1)}M';
+    if (value < 1000000000000) return '${(value / 1000000000).toStringAsFixed(1)}B';
+    return '${(value / 1000000000000).toStringAsFixed(1)}T';
+  }
 }
 
 // ignore: experimental_member_use
