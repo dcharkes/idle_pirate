@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../assets/images.dart';
 import '../../models/item.dart';
+import '../../models/game_state.dart';
 import '../../state/game_controller.dart';
 import '../../assets/translations.dart';
 
@@ -40,10 +41,6 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       _availableLanguages = langs;
     });
-  }
-
-  Widget _getDynamicIcon(String id) {
-    return DynamicIcon(id, 40, 'item').image;
   }
 
   @override
@@ -131,160 +128,134 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  Text(translate('upgrades')),
-                  const SizedBox(height: 8),
-                  ...Item.equipment.map((upgrade) {
-                    final ownedCount = state.items[upgrade] ?? 0;
-
-                    int amountToBuy = _selectedAmount;
-                    final isMax = _selectedAmount == -1;
-                    if (isMax) {
-                      amountToBuy = state.getMaxAffordable(upgrade);
-                    }
-
-                    final cost = upgrade.getBulkCost(ownedCount, amountToBuy);
-                    final canAfford =
-                        state.doubloons.value >= cost && amountToBuy > 0;
-
-                    final costText = amountToBuy > 0
-                        ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
-                        : '${upgrade.getBulkCost(ownedCount, 1)} D';
-
-                    return Card(
-                      child: ListTile(
-                        leading: _getDynamicIcon(upgrade.id),
-                        title: Text(
-                          '${translateDynamic(upgrade.id, 'item')} ($ownedCount)',
-                        ),
-                        subtitle: Text('+${upgrade.reward.value} click power'),
-                        trailing: ElevatedButton(
-                          onPressed: canAfford
-                              ? () => widget.controller.buyUpgrades(
-                                  upgrade,
-                                  amountToBuy,
-                                )
-                              : null,
-                          child: Text(costText),
-                        ),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 32),
-                  Text(translate('crew_members')),
-                  const SizedBox(height: 8),
-                  ...Item.personnel.map((generator) {
-                    final ownedCount = state.items[generator] ?? 0;
-
-                    int amountToBuy = _selectedAmount;
-                    final isMax = _selectedAmount == -1;
-                    if (isMax) {
-                      amountToBuy = state.getMaxAffordable(generator);
-                    }
-
-                    final cost = generator.getBulkCost(ownedCount, amountToBuy);
-                    final canAfford =
-                        state.doubloons.value >= cost && amountToBuy > 0;
-
-                    final costText = amountToBuy > 0
-                        ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
-                        : '${generator.getBulkCost(ownedCount, 1)} D';
-
-                    final duration = generator.duration!.inSeconds.toDouble();
-                    final cycleReward = generator.reward.value * duration;
-
-                    return Card(
-                      child: ListTile(
-                        leading: _getDynamicIcon(generator.id),
-                        title: Text(
-                          '${translateDynamic(generator.id, 'item')} ($ownedCount)',
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '+${cycleReward.toInt()} doubloons every ${duration.toInt()}s',
-                            ),
-                            const SizedBox(height: 4),
-                            LinearProgressIndicator(
-                              value:
-                                  widget.controller.state.progress[generator] ??
-                                  0.0,
-                            ),
-                          ],
-                        ),
-                        trailing: ElevatedButton(
-                          onPressed: canAfford
-                              ? () => widget.controller.buyUpgrades(
-                                  generator,
-                                  amountToBuy,
-                                )
-                              : null,
-                          child: Text(costText),
-                        ),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 32),
-                  Text(translate('fleet')),
-                  const SizedBox(height: 8),
-                  ...Item.fleet.map((generator) {
-                    final ownedCount = state.items[generator] ?? 0;
-
-                    int amountToBuy = _selectedAmount;
-                    final isMax = _selectedAmount == -1;
-                    if (isMax) {
-                      amountToBuy = state.getMaxAffordable(generator);
-                    }
-
-                    final cost = generator.getBulkCost(ownedCount, amountToBuy);
-                    final canAfford =
-                        state.doubloons.value >= cost && amountToBuy > 0;
-
-                    final costText = amountToBuy > 0
-                        ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
-                        : '${generator.getBulkCost(ownedCount, 1)} D';
-
-                    final duration = generator.duration!.inSeconds.toDouble();
-                    final cycleReward = generator.reward.value * duration;
-
-                    return Card(
-                      child: ListTile(
-                        leading: _getDynamicIcon(generator.id),
-                        title: Text(
-                          '${translateDynamic(generator.id, 'item')} ($ownedCount)',
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '+${cycleReward.toInt()} doubloons every ${duration.toInt()}s',
-                            ),
-                            const SizedBox(height: 4),
-                            LinearProgressIndicator(
-                              value:
-                                  widget.controller.state.progress[generator] ??
-                                  0.0,
-                            ),
-                          ],
-                        ),
-                        trailing: ElevatedButton(
-                          onPressed: canAfford
-                              ? () => widget.controller.buyUpgrades(
-                                  generator,
-                                  amountToBuy,
-                                )
-                              : null,
-                          child: Text(costText),
-                        ),
-                      ),
-                    );
-                  }),
+                  ItemGroup(
+                    title: translate('upgrades'),
+                    items: Item.equipment,
+                    state: state,
+                    selectedAmount: _selectedAmount,
+                    onBuy: (item, amount) =>
+                        widget.controller.buyUpgrades(item, amount),
+                  ),
+                  ItemGroup(
+                    title: translate('crew_members'),
+                    items: Item.personnel,
+                    state: state,
+                    selectedAmount: _selectedAmount,
+                    onBuy: (item, amount) =>
+                        widget.controller.buyUpgrades(item, amount),
+                  ),
+                  ItemGroup(
+                    title: translate('fleet'),
+                    items: Item.fleet,
+                    state: state,
+                    selectedAmount: _selectedAmount,
+                    onBuy: (item, amount) =>
+                        widget.controller.buyUpgrades(item, amount),
+                  ),
                 ],
               ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class ItemGroup extends StatelessWidget {
+  final String title;
+  final List<Item> items;
+  final GameState state;
+  final int selectedAmount;
+  final Function(Item, int) onBuy;
+
+  const ItemGroup({
+    super.key,
+    required this.title,
+    required this.items,
+    required this.state,
+    required this.selectedAmount,
+    required this.onBuy,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 32),
+        Text(title),
+        const SizedBox(height: 8),
+        for (final item in items)
+          ItemTile(
+            item: item,
+            state: state,
+            selectedAmount: selectedAmount,
+            onBuy: (amount) => onBuy(item, amount),
+          ),
+      ],
+    );
+  }
+}
+
+class ItemTile extends StatelessWidget {
+  final Item item;
+  final GameState state;
+  final int selectedAmount;
+  final Function(int) onBuy;
+
+  const ItemTile({
+    super.key,
+    required this.item,
+    required this.state,
+    required this.selectedAmount,
+    required this.onBuy,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final ownedCount = state.items[item] ?? 0;
+
+    int amountToBuy = selectedAmount;
+    final isMax = selectedAmount == -1;
+    if (isMax) {
+      amountToBuy = state.getMaxAffordable(item);
+    }
+
+    final cost = item.getBulkCost(ownedCount, amountToBuy);
+    final canAfford = state.doubloons.value >= cost && amountToBuy > 0;
+
+    final costText = amountToBuy > 0
+        ? (isMax ? '$cost D ($amountToBuy)' : '$cost D')
+        : '${item.getBulkCost(ownedCount, 1)} D';
+
+    Widget subtitle;
+    if (item.isGenerator) {
+      final duration = item.duration!.inSeconds.toDouble();
+      final cycleReward = item.reward.value * duration;
+      subtitle = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('+${cycleReward.toInt()} doubloons every ${duration.toInt()}s'),
+          const SizedBox(height: 4),
+          LinearProgressIndicator(
+            value: state.progress[item] ?? 0.0,
+          ),
+        ],
+      );
+    } else {
+      subtitle = Text('+${item.reward.value} click power');
+    }
+
+    return Card(
+      child: ListTile(
+        leading: DynamicIcon(item.id, 40, 'item').image,
+        title: Text('${translateDynamic(item.id, 'item')} ($ownedCount)'),
+        subtitle: subtitle,
+        trailing: ElevatedButton(
+          onPressed: canAfford ? () => onBuy(amountToBuy) : null,
+          child: Text(costText),
+        ),
       ),
     );
   }
