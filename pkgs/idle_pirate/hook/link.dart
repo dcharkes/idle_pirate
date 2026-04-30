@@ -23,16 +23,17 @@ void main(List<String> args) async {
     final iconSizes = <String, double>{};
 
     // Construct definitions for lookup
-    final uiLib = Library('package:idle_pirate/ui/screens/game_screen.dart');
-    final modelsLib = Library('package:idle_pirate/models/upgrade.dart');
-
-    final staticIconDef = Class('StaticIcon', uiLib);
-    final dynamicIconDef = Class('DynamicIcon', uiLib);
-    final upgradeDef = Class('Upgrade', modelsLib);
-    final soundDef = Class('Sound', modelsLib);
+    final assetsLib = Library('package:idle_pirate/assets/images.dart');
+    final modelsLib = Library('package:idle_pirate/models/item.dart');
+    final soundsLib = Library('package:idle_pirate/assets/sounds.dart');
     final translationsLib = Library(
-      'package:idle_pirate/state/translations.dart',
+      'package:idle_pirate/assets/translations.dart',
     );
+
+    final staticIconDef = Class('StaticIcon', assetsLib);
+    final dynamicIconDef = Class('DynamicIcon', assetsLib);
+    final upgradeDef = Class('Item', modelsLib);
+    final soundDef = Class('Sound', soundsLib);
     final translateMethod = Method('translate', translationsLib);
 
     // 1. Process StaticIcon records
