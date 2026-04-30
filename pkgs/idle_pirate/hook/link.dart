@@ -7,6 +7,23 @@ import 'package:hooks/hooks.dart';
 // ignore: experimental_member_use
 import 'package:record_use/record_use.dart';
 
+// Top-level constants for lookup
+const _assetsLib = Library('package:idle_pirate/assets/images.dart');
+const _modelsLib = Library('package:idle_pirate/models/item.dart');
+const _soundsLib = Library('package:idle_pirate/assets/sounds.dart');
+const _translationsLib = Library(
+  'package:idle_pirate/assets/translations.dart',
+);
+
+const _staticIconDef = Class('StaticIcon', _assetsLib);
+const _dynamicIconDef = Class('DynamicIcon', _assetsLib);
+const _itemDef = Class('Item', _modelsLib);
+const _soundDef = Class('Sound', _soundsLib);
+const _translateMethod = Method('translate', _translationsLib);
+const _translateDynamicMethod = Method('translateDynamic', _translationsLib);
+
+const _itemCategory = 'item';
+
 void main(List<String> args) async {
   await link(args, (LinkInput input, LinkOutputBuilder output) async {
     // ignore: experimental_member_use
@@ -20,264 +37,423 @@ void main(List<String> args) async {
       return;
     }
 
-    final iconSizes = <String, double>{};
+    final usedStaticImages = _usedStaticImages(usages);
+    final usedItems = _usedItems(usages);
+    final usedSounds = _usedSounds(usages);
+    final usedStaticTranslations = _usedStaticTranslations(usages);
 
-    // Construct definitions for lookup
-    final assetsLib = Library('package:idle_pirate/assets/images.dart');
-    final modelsLib = Library('package:idle_pirate/models/item.dart');
-    final soundsLib = Library('package:idle_pirate/assets/sounds.dart');
-    final translationsLib = Library(
-      'package:idle_pirate/assets/translations.dart',
+    final idsPerCategory = {_itemCategory: usedItems};
+
+    final usedDynamicImages = _usedDynamicImages(usages, idsPerCategory);
+    final usedDynamicTranslations = _usedDynamicTranslations(
+      usages,
+      idsPerCategory,
     );
 
-    final staticIconDef = Class('StaticIcon', assetsLib);
-    final dynamicIconDef = Class('DynamicIcon', assetsLib);
-    final upgradeDef = Class('Item', modelsLib);
-    final soundDef = Class('Sound', soundsLib);
-    final translateMethod = Method('translate', translationsLib);
+    final usedImages = {...usedStaticImages, ...usedDynamicImages};
+    final usedTranslations = {
+      ...usedStaticTranslations,
+      ...usedDynamicTranslations,
+    };
 
-    // 1. Process StaticIcon records
-    final staticInstances = usages.instances[staticIconDef] ?? [];
-    for (final instance in staticInstances) {
-      switch (instance) {
-        case InstanceConstantReference(
-          instanceConstant: InstanceConstant(
-            fields: {
-              'id': StringConstant(value: final id),
-              'size': DoubleConstant(value: final size),
-            },
-          ),
-        ):
-          iconSizes[id] = size;
-        case InstanceCreationReference(
-          positionalArguments: [
-            StringConstant(value: final id),
-            DoubleConstant(value: final size),
-          ],
-        ):
-          iconSizes[id] = size;
-        case _:
-          throw StateError(
-            'Cannot safely parse StaticIcon instance: $instance',
-          );
-      }
-    }
+    final imageAssets = _imageAssets(input.assets.data);
+    final translationAssets = _translationAssets(input.assets.data);
+    final soundAssets = _soundAssets(input.assets.data);
 
-    // 2. Process DynamicIcon records to get category sizes
-    final categorySizes = <String, double>{};
-    final dynamicInstances = usages.instances[dynamicIconDef] ?? [];
-    for (final instance in dynamicInstances) {
-      switch (instance) {
-        case InstanceCreationReference(
-          positionalArguments: [
-            _, // id
-            DoubleConstant(value: final size),
-            StringConstant(value: final category),
-          ],
-        ):
-          categorySizes[category] = size;
-        case InstanceConstantReference(
-          instanceConstant: InstanceConstant(
-            fields: {
-              'size': DoubleConstant(value: final size),
-              'category': StringConstant(value: final category),
-            },
-          ),
-        ):
-          categorySizes[category] = size;
-        case _:
-          throw StateError(
-            'Cannot safely parse DynamicIcon instance: $instance',
-          );
-      }
-    }
-
-    // 3. Process Upgrade records to know which upgrades are used
-    final usedUpgradeIds = <String>{};
-    final upgradeInstances = usages.instances[upgradeDef] ?? [];
-    for (final instance in upgradeInstances) {
-      switch (instance) {
-        case InstanceConstantReference(
-          instanceConstant: InstanceConstant(
-            fields: {'id': StringConstant(value: final id)},
-          ),
-        ):
-          usedUpgradeIds.add(id);
-        case InstanceCreationReference(
-          namedArguments: {'id': StringConstant(value: final id)},
-        ):
-          usedUpgradeIds.add(id);
-        case _:
-          throw StateError('Cannot safely parse Upgrade instance: $instance');
-      }
-    }
-
-    // 3.5 Process Sound records to know which sounds are used
-    final usedSoundIds = <String>{};
-    final soundInstances = usages.instances[soundDef] ?? [];
-    for (final instance in soundInstances) {
-      switch (instance) {
-        case InstanceConstantReference(
-          instanceConstant: InstanceConstant(
-            fields: {'id': StringConstant(value: final id)},
-          ),
-        ):
-          usedSoundIds.add(id);
-        case InstanceCreationReference(
-          positionalArguments: [StringConstant(value: final id)],
-        ):
-          usedSoundIds.add(id);
-        case InstanceCreationReference():
-          // Ignore non-const calls (e.g. from _extractAudioAssets)
-          break;
-        case _:
-          throw StateError('Cannot safely parse Sound instance: $instance');
-      }
-    }
-
-    // 3.6 Process translate calls to know which keys are used
-    final usedTranslationKeys = <String>{};
-    final translateCalls = usages.calls[translateMethod] ?? [];
-    for (final call in translateCalls) {
-      final positional = (call as dynamic).positionalArguments;
-      if (positional.isNotEmpty && positional[0] is StringConstant) {
-        usedTranslationKeys.add((positional[0] as StringConstant).value);
-      }
-    }
-
-    // 4. Combine info: assume all used upgrades are in 'upgrade' category
-    final upgradeSize = categorySizes['upgrade'];
-    if (upgradeSize != null) {
-      for (final id in usedUpgradeIds) {
-        iconSizes[id] = upgradeSize;
-      }
-    }
-
-    print('Icon sizes: $iconSizes');
-    print('Used sound IDs: $usedSoundIds');
-
-    await _processAssets(
-      input,
-      output,
-      iconSizes,
-      usedSoundIds,
-      usedTranslationKeys,
-      usedUpgradeIds,
+    final (handledImages, imageDeps) = await _treeShakeImages(
+      imageAssets,
+      usedImages,
+      input.outputDirectoryShared,
     );
+    final (handledSounds, soundDeps) = _treeShakeSounds(
+      soundAssets,
+      usedSounds,
+    );
+    final (handledTranslations, translationDeps) = await _treeShakeTranslations(
+      translationAssets,
+      usedTranslations,
+      input.outputDirectoryShared,
+    );
+
+    output.assets.data.addAll(handledImages);
+    output.assets.data.addAll(handledSounds);
+    output.assets.data.addAll(handledTranslations);
+
+    output.dependencies.addAll(imageDeps);
+    output.dependencies.addAll(soundDeps);
+    output.dependencies.addAll(translationDeps);
+
+    _handleOtherAssets(input.assets.data, output);
   });
 }
 
-Future<void> _processAssets(
-  LinkInput input,
-  LinkOutputBuilder output,
-  Map<String, double> iconSizes,
-  Set<String> usedSoundIds,
-  Set<String> usedTranslationKeys,
-  Set<String> usedUpgradeIds,
-) async {
-  // Use a known subdirectory of outputDirectoryShared
-  final assetsDir = Directory.fromUri(
-    input.outputDirectoryShared.resolve('icons/'),
-  );
-  if (!assetsDir.existsSync()) {
-    assetsDir.createSync(recursive: true);
+void _checkCategories(Iterable<String> categories, String sourceName) {
+  final unknown = categories.where((k) => k != _itemCategory).toList();
+  if (unknown.isNotEmpty) {
+    throw StateError(
+      'Unknown categories in $sourceName: $unknown. You need to handle these in the link hook.',
+    );
+  }
+}
+
+Map<String, double> _usedStaticImages(Recordings usages) {
+  final iconSizes = <String, double>{};
+  final staticInstances = usages.instances[_staticIconDef];
+  if (staticInstances == null) {
+    throw StateError(
+      'No recordings found for $_staticIconDef. You need to handle this in the link hook.',
+    );
+  }
+  for (final instance in staticInstances) {
+    switch (instance) {
+      case InstanceConstantReference(
+        instanceConstant: InstanceConstant(
+          fields: {
+            'id': StringConstant(value: final id),
+            'size': DoubleConstant(value: final size),
+          },
+        ),
+      ):
+        iconSizes[id] = size;
+      case InstanceCreationReference(
+        positionalArguments: [
+          StringConstant(value: final id),
+          DoubleConstant(value: final size),
+        ],
+      ):
+        iconSizes[id] = size;
+      case _:
+        throw StateError('Cannot safely parse StaticIcon instance: $instance');
+    }
+  }
+  return iconSizes;
+}
+
+Map<String, double> _usedDynamicImages(
+  Recordings usages,
+  Map<String, Set<String>> idsPerCategory,
+) {
+  final usedImages = <String, double>{};
+  final usedCategories = <String>{};
+  final dynamicInstances = usages.instances[_dynamicIconDef];
+  if (dynamicInstances == null) {
+    throw StateError(
+      'No recordings found for $_dynamicIconDef. You need to handle this in the link hook.',
+    );
+  }
+  for (final instance in dynamicInstances) {
+    final String category;
+    final double size;
+
+    switch (instance) {
+      case InstanceCreationReference(
+        positionalArguments: [
+          _, // id
+          DoubleConstant(value: final s),
+          StringConstant(value: final c),
+        ],
+      ):
+        category = c;
+        size = s;
+      case InstanceConstantReference(
+        instanceConstant: InstanceConstant(
+          fields: {
+            'size': DoubleConstant(value: final s),
+            'category': StringConstant(value: final c),
+          },
+        ),
+      ):
+        category = c;
+        size = s;
+      case _:
+        throw StateError('Cannot safely parse DynamicIcon instance: $instance');
+    }
+
+    usedCategories.add(category);
+
+    if (!idsPerCategory.containsKey(category)) {
+      throw StateError(
+        'Unknown category in DynamicIcon: $category. You need to handle this in the link hook.',
+      );
+    }
+
+    final ids = idsPerCategory[category] ?? {};
+    for (final id in ids) {
+      usedImages[id] = size;
+    }
   }
 
-  for (final asset in input.assets.data) {
+  _checkCategories(usedCategories, '$_dynamicIconDef');
+
+  return usedImages;
+}
+
+Set<String> _usedItems(Recordings usages) {
+  final usedItemIds = <String>{};
+  final itemInstances = usages.instances[_itemDef];
+  if (itemInstances == null) {
+    throw StateError(
+      'No recordings found for $_itemDef. You need to handle this in the link hook.',
+    );
+  }
+  for (final instance in itemInstances) {
+    switch (instance) {
+      case InstanceConstantReference(
+        instanceConstant: InstanceConstant(
+          fields: {'id': StringConstant(value: final id)},
+        ),
+      ):
+        usedItemIds.add(id);
+      case InstanceCreationReference(
+        namedArguments: {'id': StringConstant(value: final id)},
+      ):
+        usedItemIds.add(id);
+      case _:
+        throw StateError('Cannot safely parse Item instance: $instance');
+    }
+  }
+  return usedItemIds;
+}
+
+Set<String> _usedSounds(Recordings usages) {
+  final usedSoundIds = <String>{};
+  final soundInstances = usages.instances[_soundDef];
+  if (soundInstances == null) {
+    throw StateError(
+      'No recordings found for $_soundDef. You need to handle this in the link hook.',
+    );
+  }
+  for (final instance in soundInstances) {
+    switch (instance) {
+      case InstanceConstantReference(
+        instanceConstant: InstanceConstant(
+          fields: {'id': StringConstant(value: final id)},
+        ),
+      ):
+        usedSoundIds.add(id);
+      case InstanceCreationReference(
+        positionalArguments: [StringConstant(value: final id)],
+      ):
+        usedSoundIds.add(id);
+      case InstanceCreationReference():
+        // Ignore non-const calls
+        break;
+      case _:
+        throw StateError('Cannot safely parse Sound instance: $instance');
+    }
+  }
+  return usedSoundIds;
+}
+
+Set<String> _usedStaticTranslations(Recordings usages) {
+  final usedTranslationKeys = <String>{};
+  final translateCalls = usages.calls[_translateMethod];
+  if (translateCalls == null) {
+    throw StateError(
+      'No recordings found for $_translateMethod. You need to handle this in the link hook.',
+    );
+  }
+  for (final call in translateCalls) {
+    switch (call) {
+      case CallWithArguments(
+        positionalArguments: [StringConstant(value: final key), ...],
+      ):
+        usedTranslationKeys.add(key);
+      case _:
+        throw StateError(
+          'Cannot safely parse translate call: $call. You need to handle this in the link hook.',
+        );
+    }
+  }
+  return usedTranslationKeys;
+}
+
+Set<String> _usedDynamicTranslations(
+  Recordings usages,
+  Map<String, Set<String>> idsPerCategory,
+) {
+  final usedTranslations = <String>{};
+  final usedCategories = <String>{};
+  final translateCalls = usages.calls[_translateDynamicMethod];
+  if (translateCalls == null) {
+    throw StateError(
+      'No recordings found for $_translateDynamicMethod. You need to handle this in the link hook.',
+    );
+  }
+  for (final call in translateCalls) {
+    switch (call) {
+      case CallWithArguments(
+        positionalArguments: [_, StringConstant(value: final category), ...],
+      ):
+        usedCategories.add(category);
+        if (!idsPerCategory.containsKey(category)) {
+          throw StateError(
+            'Unknown category in translateDynamic: $category. You need to handle this in the link hook.',
+          );
+        }
+        usedTranslations.addAll(idsPerCategory[category] ?? {});
+      case _:
+        throw StateError(
+          'Cannot safely parse translateDynamic call: $call. You need to handle this in the link hook.',
+        );
+    }
+  }
+
+  _checkCategories(usedCategories, '$_translateDynamicMethod');
+
+  return usedTranslations;
+}
+
+Iterable<DataAsset> _imageAssets(Iterable<DataAsset> assets) =>
+    assets.where((a) => a.name.startsWith('assets/images/'));
+
+Iterable<DataAsset> _translationAssets(Iterable<DataAsset> assets) =>
+    assets.where((a) => a.name.startsWith('assets/translations/'));
+
+Iterable<DataAsset> _soundAssets(Iterable<DataAsset> assets) =>
+    assets.where((a) => a.name.startsWith('assets/sounds/'));
+
+void _handleOtherAssets(Iterable<DataAsset> assets, LinkOutputBuilder output) {
+  final otherAssets = assets.where(
+    (a) =>
+        !a.name.startsWith('assets/images/') &&
+        !a.name.startsWith('assets/translations/') &&
+        !a.name.startsWith('assets/sounds/'),
+  );
+
+  for (final asset in otherAssets) {
+    print('Unknown asset type: ${asset.name}');
+    output.assets.data.add(asset);
+  }
+}
+
+Future<(List<DataAsset>, Set<Uri>)> _treeShakeImages(
+  Iterable<DataAsset> assets,
+  Map<String, double> usedImages,
+  Uri baseOutputDir,
+) async {
+  final outputAssets = <DataAsset>[];
+  final dependencies = <Uri>{};
+
+  final outputDir = Directory.fromUri(baseOutputDir.resolve('images/'));
+  if (!outputDir.existsSync()) {
+    outputDir.createSync(recursive: true);
+  }
+
+  for (final asset in assets) {
     final filename = asset.name.split('/').last;
     final id = filename.split('.').first;
 
-    if (asset.name.startsWith('assets/images/')) {
-      if (iconSizes.containsKey(id)) {
-        final logicalSize = iconSizes[id]!;
-        final targetSize = (logicalSize * 3.0).toInt();
-        final sizeStr = '${targetSize}x$targetSize';
+    if (usedImages.containsKey(id)) {
+      final logicalSize = usedImages[id]!;
+      final targetSize = (logicalSize * 3.0).toInt();
+      final sizeStr = '${targetSize}x$targetSize';
 
-        final sourceFile = File.fromUri(asset.file);
-        output.dependencies.add(sourceFile.uri);
-        final outputFile = File.fromUri(assetsDir.uri.resolve(filename));
+      final sourceFile = File.fromUri(asset.file);
+      dependencies.add(sourceFile.uri);
+      final outputFile = File.fromUri(outputDir.uri.resolve(filename));
 
-        if (await _shouldResize(sourceFile, outputFile)) {
-          final success = await _resizeIcon(sourceFile, outputFile, sizeStr);
-          if (!success) {
-            // Fallback to original asset if resize fails
-            output.assets.data.add(asset);
-            continue;
-          }
-        } else {
-          print('Asset ${asset.name} is up to date, skipping resize.');
+      if (await _shouldResize(sourceFile, outputFile)) {
+        final success = await _resizeIcon(sourceFile, outputFile, sizeStr);
+        if (!success) {
+          outputAssets.add(asset);
+          continue;
         }
-
-        output.assets.data.add(
-          DataAsset(
-            package: asset.package,
-            name: asset.name,
-            file: outputFile.uri,
-          ),
-        );
       } else {
-        print('Filtering out icon: ${asset.name}');
+        print('Asset ${asset.name} is up to date, skipping resize.');
       }
-    } else if (asset.name.startsWith('assets/sounds/')) {
-      final id = filename.split('.').first;
-      output.dependencies.add(asset.file);
-      if (usedSoundIds.contains(id)) {
-        print('Keeping sound: ${asset.name}');
-        output.assets.data.add(asset);
-      } else {
-        print('Filtering out sound: ${asset.name}');
-      }
-    } else if (asset.name.startsWith('assets/translations/')) {
-      final file = File.fromUri(asset.file);
-      if (file.existsSync()) {
-        output.dependencies.add(file.uri);
-        final jsonStr = await file.readAsString();
-        final jsonMap = Map<String, String>.from(json.decode(jsonStr));
-        final filteredMap = <String, String>{};
 
-        for (final entry in jsonMap.entries) {
-          final key = entry.key;
-          final value = entry.value;
-
-          if (usedTranslationKeys.contains(key)) {
-            filteredMap[key] = value;
-          } else if (usedUpgradeIds.contains(key)) {
-            filteredMap[key] = value;
-          } else {
-            print('Filtering out unused translation key: $key');
-          }
-        }
-
-        final filteredJsonStr = json.encode(filteredMap);
-
-        final outputFile = File.fromUri(assetsDir.uri.resolve(filename));
-        await outputFile.writeAsString(filteredJsonStr);
-
-        print(
-          'Filtered translation file: ${asset.name}, kept ${filteredMap.length}/${jsonMap.length} keys.',
-        );
-
-        output.assets.data.add(
-          DataAsset(
-            package: asset.package,
-            name: asset.name,
-            file: outputFile.uri,
-          ),
-        );
-      }
+      outputAssets.add(
+        DataAsset(
+          package: asset.package,
+          name: asset.name,
+          file: outputFile.uri,
+        ),
+      );
     } else {
-      print('Unknown asset type: ${asset.name}');
-      output.assets.data.add(asset);
+      print('Filtering out icon: ${asset.name}');
     }
   }
+  return (outputAssets, dependencies);
+}
+
+(List<DataAsset>, Set<Uri>) _treeShakeSounds(
+  Iterable<DataAsset> assets,
+  Set<String> usedSounds,
+) {
+  final outputAssets = <DataAsset>[];
+  final dependencies = <Uri>{};
+
+  for (final asset in assets) {
+    final filename = asset.name.split('/').last;
+    final id = filename.split('.').first;
+
+    dependencies.add(asset.file);
+    if (usedSounds.contains(id)) {
+      print('Keeping sound: ${asset.name}');
+      outputAssets.add(asset);
+    } else {
+      print('Filtering out sound: ${asset.name}');
+    }
+  }
+  return (outputAssets, dependencies);
+}
+
+Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
+  Iterable<DataAsset> assets,
+  Set<String> usedTranslations,
+  Uri baseOutputDir,
+) async {
+  final outputAssets = <DataAsset>[];
+  final dependencies = <Uri>{};
+
+  final outputDir = Directory.fromUri(baseOutputDir.resolve('translations/'));
+  if (!outputDir.existsSync()) {
+    outputDir.createSync(recursive: true);
+  }
+
+  for (final asset in assets) {
+    final filename = asset.name.split('/').last;
+    final file = File.fromUri(asset.file);
+    if (!file.existsSync()) continue;
+
+    dependencies.add(file.uri);
+    final jsonStr = await file.readAsString();
+    final jsonMap = Map<String, String>.from(json.decode(jsonStr));
+    final filteredMap = <String, String>{};
+
+    for (final entry in jsonMap.entries) {
+      final key = entry.key;
+      final value = entry.value;
+
+      if (usedTranslations.contains(key)) {
+        filteredMap[key] = value;
+      } else {
+        print('Filtering out unused translation key: $key');
+      }
+    }
+
+    final filteredJsonStr = json.encode(filteredMap);
+    final outputFile = File.fromUri(outputDir.uri.resolve(filename));
+    await outputFile.writeAsString(filteredJsonStr);
+
+    print(
+      'Filtered translation file: ${asset.name}, kept ${filteredMap.length}/${jsonMap.length} keys.',
+    );
+
+    outputAssets.add(
+      DataAsset(
+        package: asset.package,
+        name: asset.name,
+        file: outputFile.uri,
+      ),
+    );
+  }
+  return (outputAssets, dependencies);
 }
 
 Future<bool> _resizeIcon(File source, File target, String sizeStr) async {
   print('Resizing asset: ${source.path} to $sizeStr');
-  // Implementation Note: We are currently using external tools (like ImageMagick)
-  // on the command line to resize images. In the future, to avoid command line
-  // dependencies, we can use `stb_image_resize2.h` (compiled via a native helper)
-  // to resize images directly within this link hook.
   final result = await Process.run('magick', [
     source.path,
     '-resize',

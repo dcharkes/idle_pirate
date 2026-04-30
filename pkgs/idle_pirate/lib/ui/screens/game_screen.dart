@@ -43,7 +43,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _getDynamicIcon(String id) {
-    return DynamicIcon(id, 40, 'upgrade').image;
+    return DynamicIcon(id, 40, 'item').image;
   }
 
   @override
@@ -155,7 +155,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: ListTile(
                         leading: _getDynamicIcon(upgrade.id),
                         title: Text(
-                          '${translateDynamic(upgrade.id, 'upgrade')} ($ownedCount)',
+                          '${translateDynamic(upgrade.id, 'item')} ($ownedCount)',
                         ),
                         subtitle: Text('+${upgrade.reward.value} click power'),
                         trailing: ElevatedButton(
@@ -197,7 +197,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: ListTile(
                         leading: _getDynamicIcon(generator.id),
                         title: Text(
-                          '${translateDynamic(generator.id, 'crew')} ($ownedCount)',
+                          '${translateDynamic(generator.id, 'item')} ($ownedCount)',
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +252,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: ListTile(
                         leading: _getDynamicIcon(generator.id),
                         title: Text(
-                          '${translateDynamic(generator.id, 'fleet')} ($ownedCount)',
+                          '${translateDynamic(generator.id, 'item')} ($ownedCount)',
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
