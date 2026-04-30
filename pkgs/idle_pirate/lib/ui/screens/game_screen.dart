@@ -50,10 +50,7 @@ class _GameScreenState extends State<GameScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C1017),
         elevation: 0,
-        title: Text(
-          translate('app_title'),
-          style: const TextStyle(color: Colors.white),
-        ),
+        // Title is hidden as requested!
         actions: [
           DropdownButton<String>(
             value: currentLanguage,
@@ -292,23 +289,15 @@ class ItemTile extends StatelessWidget {
         : '${Doubloon(item.getBulkCost(ownedCount, 1)).compact} D';
 
     Widget subtitle;
+    final duration = item.duration?.inSeconds.toDouble();
+    final cycleReward = duration != null ? item.reward.value * duration : 0.0;
+
     if (item.isGenerator) {
-      final duration = item.duration!.inSeconds.toDouble();
-      final cycleReward = item.reward.value * duration;
-      subtitle = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            translate('generator_reward')
-                .replaceAll('{amount}', Doubloon(cycleReward.toInt()).compact)
-                .replaceAll('{seconds}', duration.toInt().toString()),
-            style: const TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 2),
-          LinearProgressIndicator(
-            value: state.progress[item] ?? 0.0,
-          ),
-        ],
+      subtitle = Text(
+        translate('generator_reward')
+            .replaceAll('{amount}', Doubloon(cycleReward.toInt()).compact)
+            .replaceAll('{seconds}', duration!.toInt().toString()),
+        style: const TextStyle(color: Colors.white70),
       );
     } else {
       subtitle = Text(
@@ -327,34 +316,60 @@ class ItemTile extends StatelessWidget {
           DynamicIcon(item.id, 60, 'item').image,
           const SizedBox(width: 12),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${translateDynamic(item.id, 'item')} ($ownedCount)',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${translateDynamic(item.id, 'item')} ($ownedCount)',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle,
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFD700),
+                            foregroundColor: Colors.black,
+                            disabledBackgroundColor: Colors.grey.shade700,
+                            disabledForegroundColor: Colors.white38,
+                          ),
+                          onPressed: canAfford
+                              ? () => onBuy(amountToBuy)
+                              : null,
+                          child: Text(costText),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (item.isGenerator)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 8.0,
+                    child: LinearProgressIndicator(
+                      value: state.progress[item] ?? 0.0,
+                      backgroundColor: Colors.transparent,
                     ),
                   ),
-                  subtitle,
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFD700),
-                foregroundColor: Colors.black,
-                disabledBackgroundColor: Colors.grey.shade700,
-                disabledForegroundColor: Colors.white38,
-              ),
-              onPressed: canAfford ? () => onBuy(amountToBuy) : null,
-              child: Text(costText),
+              ],
             ),
           ),
         ],
