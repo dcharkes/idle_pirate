@@ -9,7 +9,12 @@ const Map<String, String> allLanguages = {
   'pirate_es': '🏴‍☠️ ES',
   'nl': '🇳🇱 NL',
   'pirate_nl': '🏴‍☠️ NL',
+  'fr': '🇫🇷 FR',
+  'pirate_fr': '🏴‍☠️ FR',
+  'pt': '🇵🇹 PT',
+  'pirate_pt': '🏴‍☠️ PT',
   'zh': '🇨🇳 ZH',
+  'pirate_zh': '🏴‍☠️ ZH',
 };
 
 String currentLanguage = 'en';
