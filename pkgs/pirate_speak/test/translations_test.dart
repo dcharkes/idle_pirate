@@ -59,4 +59,37 @@ void main() {
       );
     }
   });
+
+  test('All translation JSON files have keys ordered alphabetically', () {
+    var dir = Directory('assets/translations');
+    if (!dir.existsSync()) {
+      dir = Directory('pkgs/pirate_speak/assets/translations');
+    }
+
+    expect(
+      dir.existsSync(),
+      isTrue,
+      reason: 'Translations directory not found',
+    );
+
+    final jsonFiles = dir
+        .listSync()
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.json'))
+        .toList();
+
+    for (final file in jsonFiles) {
+      final fileName = file.path.split(Platform.pathSeparator).last;
+      final content = file.readAsStringSync();
+      final map = json.decode(content) as Map<String, dynamic>;
+      final keys = map.keys.toList();
+      final sortedKeys = List<String>.from(keys)..sort();
+
+      expect(
+        keys,
+        orderedEquals(sortedKeys),
+        reason: 'File $fileName keys are not sorted alphabetically.',
+      );
+    }
+  });
 }
