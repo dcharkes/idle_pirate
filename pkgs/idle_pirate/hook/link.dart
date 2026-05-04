@@ -7,6 +7,8 @@ import 'package:hooks/hooks.dart';
 // ignore: experimental_member_use
 import 'package:record_use/record_use.dart';
 
+import '../../../tree_shaking_config.dart';
+
 // Top-level constants for lookup
 const _assetsLib = Library('package:idle_pirate/assets/images.dart');
 const _modelsLib = Library('package:idle_pirate/models/item.dart');
@@ -257,6 +259,12 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeImages(
   final outputAssets = <DataAsset>[];
   final dependencies = <Uri>{};
 
+  if (imageTreeShakingLevel == imageTreeShakingNone) {
+    outputAssets.addAll(assets);
+    dependencies.addAll(assets.map((e) => e.file));
+    return (outputAssets, dependencies);
+  }
+
   // Check for missing image assets
   for (final id in usedImages.keys) {
     final assetName = 'assets/images/$id.png';
@@ -277,12 +285,17 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeImages(
     final id = filename.split('.').first;
 
     if (usedImages.containsKey(id)) {
+      dependencies.add(asset.file);
+      if (imageTreeShakingLevel == imageTreeShakingFilterOnly) {
+        outputAssets.add(asset);
+        continue;
+      }
+
       final logicalSize = usedImages[id]!;
       final targetSize = (logicalSize * 3.0).toInt();
       final sizeStr = '${targetSize}x$targetSize';
 
       final sourceFile = File.fromUri(asset.file);
-      dependencies.add(sourceFile.uri);
       final outputFile = File.fromUri(outputDir.uri.resolve(filename));
 
       if (await _shouldResize(sourceFile, outputFile)) {
@@ -316,13 +329,10 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeImages(
   final outputAssets = <DataAsset>[];
   final dependencies = <Uri>{};
 
-  // Check for missing sound assets
-  for (final id in usedSounds) {
-    if (!assets.any((a) => a.name.startsWith('assets/sounds/$id.'))) {
-      throw StateError(
-        'Missing sound asset for ID: $id. Expected assets/sounds/$id.*',
-      );
-    }
+  if (!enableAudioTreeShaking) {
+    outputAssets.addAll(assets);
+    dependencies.addAll(assets.map((e) => e.file));
+    return (outputAssets, dependencies);
   }
 
   for (final asset in assets) {

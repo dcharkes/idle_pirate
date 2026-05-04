@@ -8,6 +8,8 @@ import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
 import 'package:record_use/record_use.dart';
 
+import '../../../tree_shaking_config.dart';
+
 // Top-level constants for lookup
 const _translationsLib = Library('package:pirate_speak/pirate_speak.dart');
 
@@ -19,7 +21,7 @@ void main(List<String> args) async {
     // ignore: experimental_member_use
     final usages = input.recordedUses;
 
-    if (usages == null) {
+    if (usages == null || !enableTranslationTreeShaking) {
       print(
         'No recorded uses found. Bailing on treeshaking and including all assets.',
       );

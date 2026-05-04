@@ -9,16 +9,20 @@ import 'package:mini_audio/src/third_party/record_use_mapping.dart';
 import 'package:native_toolchain_c/native_toolchain_c.dart';
 import 'package:record_use/record_use.dart';
 
+import '../../../tree_shaking_config.dart';
+
 void main(List<String> arguments) async {
   await link(arguments, (input, output) async {
     await getCLibrary(input.config.code.targetOS).link(
       input: input,
       output: output,
       linkerOptions: LinkerOptions.treeshake(
-        // ignore: experimental_member_use
-        symbolsToKeep: input.recordedUses?.calls.keys.cast<Method>().map(
-          (e) => recordUseMapping[e.name]!,
-        ),
+        symbolsToKeep: !enableNativeTreeShaking
+            ? null
+            // ignore: experimental_member_use
+            : input.recordedUses?.calls.keys.cast<Method>().map(
+                (e) => recordUseMapping[e.name]!,
+              ),
       ),
     );
   });
