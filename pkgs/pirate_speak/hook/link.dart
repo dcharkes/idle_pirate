@@ -69,6 +69,14 @@ void main(List<String> args) async {
       );
     }
 
+    final requestedLanguages = _getRequestedLanguages(input);
+    if (requestedLanguages != null && translationTreeShakingLookAtUserDefines) {
+      translationFiles.retainWhere((file) {
+        final lang = file.uri.pathSegments.last.split('.').first;
+        return requestedLanguages.contains(lang);
+      });
+    }
+
     final (handledTranslations, translationDeps) = await _treeShakeTranslations(
       translationFiles,
       usedTranslations,
@@ -192,4 +200,18 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
     );
   }
   return (outputAssets, dependencies);
+}
+
+Set<String>? _getRequestedLanguages(LinkInput input) {
+  // Try to see if userDefines are available on LinkInput
+  final requestedLanguages = (input as dynamic).userDefines?['translations'];
+  if (requestedLanguages == null) return null;
+
+  final list = <String>{};
+  if (requestedLanguages is List) {
+    list.addAll(requestedLanguages.cast<String>());
+  } else if (requestedLanguages is String) {
+    list.addAll(requestedLanguages.split(',').map((e) => e.trim()));
+  }
+  return list;
 }
