@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import '../models/item.dart';
 
-// ignore: experimental_member_use
 @RecordUse()
 final class StaticIcon {
   final String id;
   final double size;
-  // ignore: experimental_member_use
+
   const StaticIcon(@mustBeConst this.id, @mustBeConst this.size);
 
   Widget get image => Image.asset(
@@ -21,18 +20,17 @@ final class StaticIcon {
   );
 }
 
-// ignore: experimental_member_use
 @RecordUse()
 final class DynamicIcon {
   final String id;
   final double size;
   final String category;
-  // ignore: experimental_member_use
+
   const DynamicIcon(
     this.id,
-    // ignore: experimental_member_use
+
     @mustBeConst this.size,
-    // ignore: experimental_member_use
+
     @mustBeConst this.category,
   );
 

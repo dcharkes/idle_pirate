@@ -44,7 +44,8 @@ class GameController extends ChangeNotifier {
   Future<void> _extractAudioAssets() async {
     final tempDir = Directory.systemTemp;
 
-    for (final sound in Sound.all) {
+    itemSounds;
+    for (final sound in Sound.used) {
       final file = File('${tempDir.path}/${sound.id}.mp3');
       if (!file.existsSync()) {
         try {
@@ -146,7 +147,7 @@ class GameController extends ChangeNotifier {
       _state = newState;
 
       // Play sound based on upgrade ID
-      final sound = upgradeSounds[item.id] ?? Sound.coin;
+      final sound = itemSounds[item.id] ?? Sound.coin;
       _playSound(sound);
 
       _saveState();

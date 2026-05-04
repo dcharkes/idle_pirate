@@ -16,7 +16,6 @@ extension type const Doubloon(int value) {
   }
 }
 
-// ignore: experimental_member_use
 @RecordUse()
 final class Item {
   final String id;

@@ -18,7 +18,6 @@ const _translateDynamicMethod = Method('translateDynamic', _translationsLib);
 
 void main(List<String> args) async {
   await link(args, (LinkInput input, LinkOutputBuilder output) async {
-    // ignore: experimental_member_use
     final usages = input.recordedUses;
 
     if (usages == null || !enableTranslationTreeShaking) {

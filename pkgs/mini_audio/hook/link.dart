@@ -19,7 +19,6 @@ void main(List<String> arguments) async {
       linkerOptions: LinkerOptions.treeshake(
         symbolsToKeep: !enableNativeTreeShaking
             ? null
-            // ignore: experimental_member_use
             : input.recordedUses?.calls.keys.cast<Method>().map(
                 (e) => recordUseMapping[e.name]!,
               ),

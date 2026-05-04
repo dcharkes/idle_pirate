@@ -6,3 +6,6 @@ linter:
 
 formatter:
   trailing_commas: preserve
+analyzer:
+  errors:
+    experimental_member_use: ignore

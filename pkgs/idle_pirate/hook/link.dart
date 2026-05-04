@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:pirate_speak/src/category_ids.dart';
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
-// ignore: experimental_member_use
+
 import 'package:record_use/record_use.dart';
 
 import '../../../tree_shaking_config.dart';
@@ -23,7 +23,6 @@ const _itemCategory = 'item';
 
 void main(List<String> args) async {
   await link(args, (LinkInput input, LinkOutputBuilder output) async {
-    // ignore: experimental_member_use
     final usages = input.recordedUses;
 
     if (usages == null) {

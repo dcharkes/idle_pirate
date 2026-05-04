@@ -1,9 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:meta/meta.dart';
-// ignore: experimental_member_use
-// ignore: unused_import
-import 'package:record_use/record_use.dart';
 
 const Map<String, String> allLanguages = {
   'en': '🇺🇸 EN',
@@ -47,20 +44,17 @@ Future<List<String>> loadAvailableLanguages() async {
   return langs;
 }
 
-// ignore: experimental_member_use
 @RecordUse()
 String translate(
-  // ignore: experimental_member_use
   @mustBeConst String key,
 ) {
   return _translations[key] ?? key;
 }
 
-// ignore: experimental_member_use
 @RecordUse()
 String translateDynamic(
   String key,
-  // ignore: experimental_member_use
+
   @mustBeConst String category,
 ) {
   return _translations[key] ?? key;
