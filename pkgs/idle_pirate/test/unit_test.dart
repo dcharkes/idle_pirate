@@ -26,12 +26,11 @@ void main() {
 
     final upgrade = Item.sharperHooks;
 
-    // N = 0, K = 1 -> cost should be 10
-    expect(upgrade.getBulkCost(0, 1), 10);
+    // N = 0, K = 1 -> cost should be 5
+    expect(upgrade.getBulkCost(0, 1), 5);
 
-    // N = 0, K = 10 -> cost should be 10 * (1.15^10 - 1) / 0.15
-    // 10 * (4.0455 - 1) / 0.15 = 10 * 3.0455 / 0.15 = 203.03 -> 203
-    expect(upgrade.getBulkCost(0, 10), 203);
+    // N = 0, K = 10 -> cost should be 101
+    expect(upgrade.getBulkCost(0, 10), 101);
 
     await box.close();
   });
@@ -39,7 +38,7 @@ void main() {
   test('Formula: getMaxAffordable calculates correctly', () async {
     final box = await Hive.openBox('test_max');
     await box.put('state', {
-      'doubloons': 10,
+      'doubloons': 9,
       'items': <String, int>{},
       'progress': <String, double>{},
     });
@@ -53,9 +52,9 @@ void main() {
 
     expect(controller.state.getMaxAffordable(upgrade), 1);
 
-    // With 203 doubloons, max afford should be 10
+    // With 101 doubloons, max afford should be 10
     await box.put('state', {
-      'doubloons': 204,
+      'doubloons': 102,
       'items': <String, int>{},
       'progress': <String, double>{},
     });
@@ -72,7 +71,7 @@ void main() {
   test('Passive Income: calculates correctly', () async {
     final box = await Hive.openBox('test_passive');
     await box.put('state', {
-      'doubloons': 100,
+      'doubloons': 20000,
       'items': <String, int>{},
       'progress': <String, double>{},
     });
@@ -85,10 +84,10 @@ void main() {
     // Initial income should be 0
     expect(controller.state.passiveIncomePerSecond, 0);
 
-    // Buy a Cabin Boy (id: 'cabin_boy', reward: 1)
+    // Buy a Cabin Boy (id: 'cabin_boy', reward: 40)
     controller.buyUpgrades(Item.cabinBoy, 1);
 
-    expect(controller.state.passiveIncomePerSecond, 1);
+    expect(controller.state.passiveIncomePerSecond, 40);
 
     await box.close();
   });
@@ -113,8 +112,8 @@ void main() {
       enableAudio: false,
     );
 
-    // Should have earned 10 doubloons (1/sec * 10 sec)
-    expect(controller.state.doubloons.value, 10);
+    // Should have earned 400 doubloons (40/sec * 10 sec)
+    expect(controller.state.doubloons.value, 400);
 
     await box.close();
   });
@@ -156,8 +155,8 @@ void main() {
     );
     expect(
       controller.state.doubloons,
-      2,
-    ); // 1 cabin boy * 1 reward * 2s duration
+      80,
+    ); // 1 cabin boy * 40 reward * 2s duration
 
     await box.close();
   });
@@ -196,8 +195,8 @@ void main() {
     expect(controller.state.progress[Item.sloop], closeTo(0.0, 0.02));
     expect(
       controller.state.doubloons,
-      10000,
-    ); // 1 sloop * 500 reward * 20s duration
+      180000,
+    ); // 1 sloop * 9000 reward * 20s duration
 
     await box.close();
   });

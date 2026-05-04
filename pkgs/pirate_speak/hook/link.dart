@@ -203,7 +203,6 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
 }
 
 Set<String>? _getRequestedLanguages(LinkInput input) {
-  // Try to see if userDefines are available on LinkInput
   final requestedLanguages = (input as dynamic).userDefines?['translations'];
   if (requestedLanguages == null) return null;
 

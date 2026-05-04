@@ -155,22 +155,26 @@ class _GameScreenState extends State<GameScreen> {
                         onBuy: (item, amount) =>
                             widget.controller.buyUpgrades(item, amount),
                       ),
-                      ItemGroup(
-                        title: translate('crew_members'),
-                        items: Item.personnel,
-                        state: state,
-                        selectedAmount: _selectedAmount,
-                        onBuy: (item, amount) =>
-                            widget.controller.buyUpgrades(item, amount),
-                      ),
-                      ItemGroup(
-                        title: translate('fleet'),
-                        items: Item.fleet,
-                        state: state,
-                        selectedAmount: _selectedAmount,
-                        onBuy: (item, amount) =>
-                            widget.controller.buyUpgrades(item, amount),
-                      ),
+                      if ((state.items[Item.heavyBoots] ?? 0) > 0)
+                        ItemGroup(
+                          title: translate('crew_members'),
+                          items: Item.personnel,
+                          state: state,
+                          selectedAmount: _selectedAmount,
+                          onBuy: (item, amount) =>
+                              widget.controller.buyUpgrades(item, amount),
+                        ),
+                      if (Item.personnel.every(
+                        (item) => (state.items[item] ?? 0) > 0,
+                      ))
+                        ItemGroup(
+                          title: translate('fleet'),
+                          items: Item.fleet,
+                          state: state,
+                          selectedAmount: _selectedAmount,
+                          onBuy: (item, amount) =>
+                              widget.controller.buyUpgrades(item, amount),
+                        ),
                     ],
                   ),
                 );
@@ -236,6 +240,50 @@ class _GameScreenState extends State<GameScreen> {
               },
             ),
           ),
+          // Reset Button
+          Positioned(
+            top: 16,
+            left: 16,
+            child: IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white70),
+              tooltip: 'Reset Game',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: const Color(0xFF1A2332),
+                    title: const Text(
+                      'Reset Game?',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    content: const Text(
+                      'Are you sure you want to wipe all your doubloons and upgrades?',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          widget.controller.resetGame();
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Reset',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -260,6 +308,35 @@ class ItemGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Find the first item in this group that the user doesn't own yet
+    Item? firstUnowned;
+    for (final item in items) {
+      if ((state.items[item] ?? 0) == 0) {
+        firstUnowned = item;
+        break;
+      }
+    }
+
+    final visibleTiles = <Widget>[];
+    for (final item in items) {
+      final ownedCount = state.items[item] ?? 0;
+      final isNextToBuy = item == firstUnowned;
+
+      if (ownedCount > 0 || isNextToBuy) {
+        visibleTiles.add(
+          ItemTile(
+            key: ValueKey(item.id),
+            item: item,
+            state: state,
+            selectedAmount: selectedAmount,
+            onBuy: (amount) => onBuy(item, amount),
+          ),
+        );
+      }
+    }
+
+    if (visibleTiles.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -273,13 +350,7 @@ class ItemGroup extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        for (final item in items)
-          ItemTile(
-            item: item,
-            state: state,
-            selectedAmount: selectedAmount,
-            onBuy: (amount) => onBuy(item, amount),
-          ),
+        ...visibleTiles,
       ],
     );
   }
@@ -312,11 +383,9 @@ class ItemTile extends StatelessWidget {
     final cost = item.getBulkCost(ownedCount, amountToBuy);
     final canAfford = state.doubloons.value >= cost && amountToBuy > 0;
 
-    final costText = amountToBuy > 0
-        ? (isMax
-              ? '${Doubloon(cost).compact} D ($amountToBuy)'
-              : '${Doubloon(cost).compact} D')
-        : '${Doubloon(item.getBulkCost(ownedCount, 1)).compact} D';
+    final numCost = amountToBuy > 0 ? cost : item.getBulkCost(ownedCount, 1);
+    final costValText = Doubloon(numCost).compact;
+    final suffixText = (amountToBuy > 0 && isMax) ? ' ($amountToBuy)' : '';
 
     Widget subtitle;
     final duration = item.duration?.inSeconds.toDouble();
@@ -383,7 +452,15 @@ class ItemTile extends StatelessWidget {
                           onPressed: canAfford
                               ? () => onBuy(amountToBuy)
                               : null,
-                          child: Text(costText),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(costValText),
+                              const SizedBox(width: 4),
+                              const StaticIcon('doubloon', 16).image,
+                              if (suffixText.isNotEmpty) Text(suffixText),
+                            ],
+                          ),
                         ),
                       ),
                     ],

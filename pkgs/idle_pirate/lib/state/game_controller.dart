@@ -158,4 +158,10 @@ class GameController extends ChangeNotifier {
   void buyUpgrade(Item item) {
     buyUpgrades(item, 1);
   }
+
+  void resetGame() {
+    _state = GameState();
+    _saveState();
+    notifyListeners();
+  }
 }

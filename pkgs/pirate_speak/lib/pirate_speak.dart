@@ -13,6 +13,8 @@ const Map<String, String> allLanguages = {
   'pirate_fr': '🏴‍☠️ FR',
   'pt': '🇵🇹 PT',
   'pirate_pt': '🏴‍☠️ PT',
+  'de': '🇩🇪 DE',
+  'pirate_de': '🏴‍☠️ DE',
   'zh': '🇨🇳 ZH',
   'pirate_zh': '🏴‍☠️ ZH',
 };

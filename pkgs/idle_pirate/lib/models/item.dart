@@ -56,55 +56,55 @@ final class Item {
 
   static const sharperHooks = Item._(
     id: 'sharper_hooks',
-    baseCost: Doubloon(10),
+    baseCost: Doubloon(5),
     reward: Doubloon(1),
   );
   static const betterShovels = Item._(
     id: 'better_shovels',
-    baseCost: Doubloon(500),
-    reward: Doubloon(5),
+    baseCost: Doubloon(40),
+    reward: Doubloon(4),
   );
   static const heavyBoots = Item._(
     id: 'heavy_boots',
-    baseCost: Doubloon(5000),
-    reward: Doubloon(25),
+    baseCost: Doubloon(200),
+    reward: Doubloon(15),
   );
 
   static const cabinBoy = Item._(
     id: 'cabin_boy',
-    baseCost: Doubloon(15),
-    reward: Doubloon(1),
+    baseCost: Doubloon(500),
+    reward: Doubloon(40),
     duration: Duration(seconds: 2),
   );
   static const gunner = Item._(
     id: 'gunner',
-    baseCost: Doubloon(500),
-    reward: Doubloon(15),
+    baseCost: Doubloon(1500),
+    reward: Doubloon(250),
     duration: Duration(seconds: 5),
   );
   static const quartermaster = Item._(
     id: 'quartermaster',
     baseCost: Doubloon(8000),
-    reward: Doubloon(100),
+    reward: Doubloon(1500),
     duration: Duration(seconds: 10),
   );
 
   static const sloop = Item._(
     id: 'sloop',
-    baseCost: Doubloon(50000),
-    reward: Doubloon(500),
+    baseCost: Doubloon(40000),
+    reward: Doubloon(9000),
     duration: Duration(seconds: 20),
   );
   static const brigantine = Item._(
     id: 'brigantine',
-    baseCost: Doubloon(250000),
-    reward: Doubloon(3000),
+    baseCost: Doubloon(200000),
+    reward: Doubloon(60000),
     duration: Duration(minutes: 1),
   );
   static const frigate = Item._(
     id: 'frigate',
     baseCost: Doubloon(1000000),
-    reward: Doubloon(15000),
+    reward: Doubloon(400000),
     duration: Duration(minutes: 2),
   );
 

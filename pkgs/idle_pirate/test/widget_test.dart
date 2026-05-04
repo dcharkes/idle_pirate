@@ -93,18 +93,18 @@ void main() {
     await tester.pump();
     expect(find.text('Doubloons: 10'), findsOneWidget);
 
-    // Buy Sharper Hooks
-    await tester.tap(find.text('10 D'));
+    // Buy Sharper Hooks (cost 5)
+    await tester.tap(find.text('5'));
     await tester.pump();
 
-    // Doubloons should be 0
-    expect(find.text('Doubloons: 0'), findsOneWidget);
+    // Doubloons should be 5
+    expect(find.text('Doubloons: 5'), findsOneWidget);
     expect(find.text('Gain 2 doubloons'), findsOneWidget);
 
     // Click once, should get 2 doubloons
     await tester.tap(find.text('Open Chest'));
     await tester.pump();
-    expect(find.text('Doubloons: 2'), findsOneWidget);
+    expect(find.text('Doubloons: 7'), findsOneWidget);
 
     await box.close();
   });
@@ -123,8 +123,8 @@ void main() {
     await tester.tap(find.text('Max'));
     await tester.pump();
 
-    // With 0 doubloons, button should show price of 1 item: "10 D"
-    expect(find.text('10 D'), findsOneWidget);
+    // With 0 doubloons, button should show price of 1 item: "5"
+    expect(find.text('5'), findsOneWidget);
 
     // Gain 10 doubloons
     for (int i = 0; i < 10; i++) {
@@ -133,14 +133,15 @@ void main() {
     await tester.pump();
     expect(find.text('Doubloons: 10'), findsOneWidget);
 
-    // Now button should show "10 D (1)"
-    expect(find.text('10 D (1)'), findsOneWidget);
+    // Now button should show "5" and a suffix " (1)"
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text(' (1)'), findsOneWidget);
 
     // Buy it
-    await tester.tap(find.text('10 D (1)'));
+    await tester.tap(find.text('5'));
     await tester.pump();
 
-    expect(find.text('Doubloons: 0'), findsOneWidget);
+    expect(find.text('Doubloons: 5'), findsOneWidget);
 
     await box.close();
   });
@@ -149,36 +150,35 @@ void main() {
     WidgetTester tester,
   ) async {
     final box = FakeBox();
+    await box.put('state', {
+      'doubloons': 1000,
+      'items': {'heavy_boots': 1},
+      'progress': <String, double>{},
+    });
     final controller = GameController(
       box: box,
       startTimer: false,
       enableAudio: false,
     );
+
     await tester.pumpWidget(MyApp(controller: controller));
 
-    expect(find.text('Doubloons: 0'), findsOneWidget);
+    expect(find.text('Doubloons: 1.0K'), findsOneWidget);
 
-    // Gain 15 doubloons to buy a Cabin Boy
-    for (int i = 0; i < 15; i++) {
-      await tester.tap(find.text('Open Chest'));
-    }
-    await tester.pump();
-    expect(find.text('Doubloons: 15'), findsOneWidget);
-
-    // Buy Cabin Boy (cost 15)
-    await tester.ensureVisible(find.text('15 D'));
-    await tester.tap(find.text('15 D'));
+    // Buy Cabin Boy (cost 500)
+    await tester.ensureVisible(find.text('500'));
+    await tester.tap(find.text('500'));
     await tester.pump();
 
-    // Doubloons should be 0
-    expect(find.text('Doubloons: 0'), findsOneWidget);
+    // Doubloons should be 500
+    expect(find.text('Doubloons: 500'), findsOneWidget);
 
-    // Advance time by 1 tick (100ms) -> Cabin Boy duration is 2s
+    // Advance time by 1 tick (33ms) -> Cabin Boy duration is 2s
     controller.tick();
     await tester.pump();
 
-    // Doubloons should still be 0, but progress should be 0.05
-    expect(find.text('Doubloons: 0'), findsOneWidget);
+    // Doubloons should still be 500, but progress should be 0.0165
+    expect(find.text('Doubloons: 500'), findsOneWidget);
 
     final cabinBoyTile = find.ancestor(
       of: find.textContaining('Cabin Boy'),
@@ -200,8 +200,8 @@ void main() {
     }
     await tester.pump();
 
-    // Doubloons should be 2 (amount for 1 full cycle: 1 count * 1 rate * 2s)
-    expect(find.text('Doubloons: 2'), findsOneWidget);
+    // Doubloons should be 580 (500 + 80)
+    expect(find.text('Doubloons: 580'), findsOneWidget);
 
     await box.close();
   });
@@ -212,7 +212,7 @@ void main() {
     final box = FakeBox();
     await box.put('state', {
       'doubloons': 50000,
-      'items': <String, int>{},
+      'items': {'cabin_boy': 1, 'gunner': 1, 'quartermaster': 1},
       'progress': <String, double>{},
     });
     final controller = GameController(
@@ -224,20 +224,20 @@ void main() {
 
     expect(find.text('Doubloons: 50.0K'), findsOneWidget);
 
-    // Buy Sloop (cost 50000)
-    await tester.ensureVisible(find.text('50.0K D'));
-    await tester.tap(find.text('50.0K D'));
+    // Buy Sloop (cost 40000)
+    await tester.ensureVisible(find.text('40.0K'));
+    await tester.tap(find.text('40.0K'));
     await tester.pump();
 
-    // Doubloons should be 0
-    expect(find.text('Doubloons: 0'), findsOneWidget);
+    // Doubloons should be 10.0K
+    expect(find.text('Doubloons: 10.0K'), findsOneWidget);
 
     // Advance time by 1 tick (33ms) -> Sloop duration is 20s
     controller.tick();
     await tester.pump();
 
-    // Doubloons should still be 0, but progress should be 0.00165
-    expect(find.text('Doubloons: 0'), findsOneWidget);
+    // Doubloons should still be 10.0K, but progress should be 0.00165
+    expect(find.text('Doubloons: 10.0K'), findsOneWidget);
 
     final sloopTile = find.ancestor(
       of: find.textContaining('Sloop'),
