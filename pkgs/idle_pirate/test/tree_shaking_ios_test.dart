@@ -53,8 +53,8 @@ void main() {
         'Built Runner.app size: ${totalSizeMB.toStringAsFixed(1)}MB ($totalSizeBytes bytes)',
       );
 
-      // Expect the app size to be exactly 16699930 bytes. If the app grows/shrinks, this can be updated.
-      const int expectedSizeBytes = 16699930;
+      // Expect the app size to be exactly 16879551 bytes. If the app grows/shrinks, this can be updated.
+      const int expectedSizeBytes = 16879551;
       expect(
         totalSizeBytes,
         expectedSizeBytes,
