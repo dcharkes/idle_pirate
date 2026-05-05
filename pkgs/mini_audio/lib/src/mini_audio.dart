@@ -37,6 +37,14 @@ final class MiniAudio {
       throw MiniAudioException('Failed to play audio: ${result.name}}.');
     }
   });
+
+  /// Sets the master engine volume (0.0 to 1.0).
+  void setVolume(double volume) {
+    final result = ma_engine_set_volume(_engine, volume);
+    if (result != ma_result.MA_SUCCESS) {
+      throw MiniAudioException('Failed to set master volume: ${result.name}.');
+    }
+  }
 }
 
 /// An exception that is thrown when an error occurs in the mini_audio library.

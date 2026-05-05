@@ -32,4 +32,5 @@ const recordUseMapping = {
   '_ma_engine_init': 'ma_engine_init',
   '_ma_engine_play_sound': 'ma_engine_play_sound',
   'ma_engine_uninit': 'ma_engine_uninit',
+  '_ma_engine_set_volume': 'ma_engine_set_volume',
 };

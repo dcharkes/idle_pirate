@@ -217,29 +217,74 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
-          // Floating Language Selector
+          // Floating Language and Volume Controls
           Positioned(
             top: 16,
             right: 16,
-            child: DropdownButton<String>(
-              value: currentLanguage,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-              dropdownColor: const Color(0xFF1A2332),
-              underline: const SizedBox(),
-              items: _availableLanguages.map((lang) {
-                return DropdownMenuItem(
-                  value: lang,
-                  child: Text(
-                    _getLanguageLabel(lang),
-                    style: const TextStyle(color: Colors.white),
-                  ),
+            child: ListenableBuilder(
+              listenable: widget.controller,
+              builder: (context, child) {
+                final volume = widget.controller.volume;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      volume == 0.0
+                          ? Icons.volume_off
+                          : volume < 0.5
+                          ? Icons.volume_down
+                          : Icons.volume_up,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 4,
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 6,
+                          ),
+                          overlayShape: const RoundSliderOverlayShape(
+                            overlayRadius: 14,
+                          ),
+                        ),
+                        child: Slider(
+                          value: volume,
+                          min: 0.0,
+                          max: 1.0,
+                          activeColor: const Color(0xFFFFD700),
+                          inactiveColor: Colors.white24,
+                          onChanged: (value) {
+                            widget.controller.setVolume(value);
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    DropdownButton<String>(
+                      value: currentLanguage,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      dropdownColor: const Color(0xFF1A2332),
+                      underline: const SizedBox(),
+                      items: _availableLanguages.map((lang) {
+                        return DropdownMenuItem(
+                          value: lang,
+                          child: Text(
+                            _getLanguageLabel(lang),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) async {
+                        if (newValue != null) {
+                          await loadTranslations(newValue);
+                          setState(() {});
+                        }
+                      },
+                    ),
+                  ],
                 );
-              }).toList(),
-              onChanged: (String? newValue) async {
-                if (newValue != null) {
-                  await loadTranslations(newValue);
-                  setState(() {});
-                }
               },
             ),
           ),

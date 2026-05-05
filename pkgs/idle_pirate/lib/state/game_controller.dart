@@ -77,6 +77,22 @@ class GameController extends ChangeNotifier {
     }
   }
 
+  double _volume = 1.0;
+  double get volume => _volume;
+
+  void setVolume(double value) {
+    _volume = value;
+    if (_audio != null) {
+      try {
+        _audio!.setVolume(value);
+      } catch (e) {
+        // ignore: avoid_print
+        print('Failed to set volume: $e');
+      }
+    }
+    notifyListeners();
+  }
+
   GameState get state => _state;
 
   void _loadState() {

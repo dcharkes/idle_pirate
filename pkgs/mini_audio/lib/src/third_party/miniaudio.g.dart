@@ -67,6 +67,18 @@ ma_result ma_engine_play_sound(
 @ffi.Native<ffi.Void Function(ffi.Pointer<ma_engine>)>()
 external void ma_engine_uninit(ffi.Pointer<ma_engine> pEngine);
 
+@meta.RecordUse()
+@ffi.Native<ffi.Int Function(ffi.Pointer<ma_engine>, ffi.Float)>(
+  symbol: 'ma_engine_set_volume',
+)
+external int _ma_engine_set_volume(
+  ffi.Pointer<ma_engine> pEngine,
+  double volume,
+);
+
+ma_result ma_engine_set_volume(ffi.Pointer<ma_engine> pEngine, double volume) =>
+    ma_result.fromValue(_ma_engine_set_volume(pEngine, volume));
+
 final class ma_allocation_callbacks extends ffi.Struct {
   external ffi.Pointer<ffi.Void> pUserData;
 
