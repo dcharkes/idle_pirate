@@ -60,20 +60,22 @@ class _GameScreenState extends State<GameScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        translate('income_per_second').replaceAll(
-                          '{amount}',
-                          Doubloon(
-                            widget.controller.state.passiveIncomePerSecond,
-                          ).compact,
+                      if (state.passiveIncomePerSecond > 0) ...[
+                        Text(
+                          translate('income_per_second').replaceAll(
+                            '{amount}',
+                            Doubloon(
+                              state.passiveIncomePerSecond,
+                            ).compact,
+                          ),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
+                      ],
                       Center(
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -120,33 +122,34 @@ class _GameScreenState extends State<GameScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      // Purchase Amount Selector
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: SegmentedButton<int>(
-                          style: SegmentedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1A2332),
-                            foregroundColor: Colors.white70,
-                            selectedBackgroundColor: const Color(0xFF2A3548),
-                            selectedForegroundColor: Colors.white,
-                          ),
-                          segments: [
-                            ButtonSegment(value: 1, label: Text('x1')),
-                            ButtonSegment(value: 10, label: Text('x10')),
-                            ButtonSegment(
-                              value: -1,
-                              label: Text(translate('max')),
+                      if ((state.items[Item.heavyBoots] ?? 0) > 0) ...[
+                        const SizedBox(height: 16),
+                        // Purchase Amount Selector
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SegmentedButton<int>(
+                            style: SegmentedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1A2332),
+                              foregroundColor: Colors.white70,
+                              selectedBackgroundColor: const Color(0xFF2A3548),
+                              selectedForegroundColor: Colors.white,
                             ),
-                          ],
-                          selected: {_selectedAmount},
-                          onSelectionChanged: (Set<int> newSelection) {
-                            setState(() {
-                              _selectedAmount = newSelection.first;
-                            });
-                          },
+                            segments: [
+                              ButtonSegment(value: 1, label: Text('x1')),
+                              ButtonSegment(
+                                value: -1,
+                                label: Text(translate('max')),
+                              ),
+                            ],
+                            selected: {_selectedAmount},
+                            onSelectionChanged: (Set<int> newSelection) {
+                              setState(() {
+                                _selectedAmount = newSelection.first;
+                              });
+                            },
+                          ),
                         ),
-                      ),
+                      ],
                       ItemGroup(
                         title: translate('equipment'),
                         items: Item.equipment,
