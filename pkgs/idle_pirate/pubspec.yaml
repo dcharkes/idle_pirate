@@ -33,6 +33,14 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  image_path: "assets/images/pirate_logo.jpg"
+  ios: true
+  macos:
+    generate: true
+    image_path: "assets/images/pirate_logo.jpg"
 
 flutter:
   uses-material-design: true
