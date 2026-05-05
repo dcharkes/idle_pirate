@@ -32,6 +32,7 @@ void main(List<String> args) async {
         'No recorded uses found. Bailing on treeshaking and including all assets.',
       );
       output.assets.data.addAll(input.assets.data);
+      output.dependencies.addAll(input.assets.data.map((a) => a.file));
       return;
     }
 
