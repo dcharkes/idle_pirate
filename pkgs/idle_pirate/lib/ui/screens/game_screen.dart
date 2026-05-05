@@ -460,7 +460,7 @@ class ItemTile extends StatelessWidget {
                             children: [
                               Text(costValText),
                               const SizedBox(width: 4),
-                              const StaticIcon('doubloon', 16).image,
+                              Text(translate('doubloons')),
                               if (suffixText.isNotEmpty) Text(suffixText),
                             ],
                           ),

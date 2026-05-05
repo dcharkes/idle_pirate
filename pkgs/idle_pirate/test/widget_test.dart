@@ -112,7 +112,7 @@ void main() {
     final box = FakeBox();
     await box.put('state', {
       'doubloons': 200,
-      'items': <String, int>{},
+      'items': {'sharper_hooks': 1, 'better_shovels': 1},
       'progress': <String, double>{},
     });
     final controller = GameController(
@@ -135,25 +135,25 @@ void main() {
     await tester.tap(find.text('Max'));
     await tester.pump();
 
-    // With 0 doubloons, sharper hooks button should show price of 1 item: "5"
+    // With 0 doubloons, sharper hooks button should show price of next item: "5"
     expect(find.text('5'), findsOneWidget);
 
-    // Gain doubloons (10 clicks * 16 power = 160 doubloons)
+    // Gain doubloons (10 clicks * 21 power = 210 doubloons)
     for (int i = 0; i < 10; i++) {
       await tester.tap(find.text('Open Chest'));
     }
     await tester.pump();
-    expect(find.text('Doubloons: 160'), findsOneWidget);
+    expect(find.text('Doubloons: 210'), findsOneWidget);
 
-    // Now sharper hooks button should show "145" and a suffix " (12)"
-    expect(find.text('145'), findsOneWidget);
-    expect(find.text(' (12)'), findsOneWidget);
+    // Now sharper hooks button should show "197" and a suffix " (13)"
+    expect(find.text('197'), findsOneWidget);
+    expect(find.text(' (13)'), findsOneWidget);
 
     // Buy it
-    await tester.tap(find.text('145'));
+    await tester.tap(find.text('197'));
     await tester.pump();
 
-    expect(find.text('Doubloons: 15'), findsOneWidget);
+    expect(find.text('Doubloons: 13'), findsOneWidget);
 
     await box.close();
   });
