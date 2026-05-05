@@ -110,6 +110,11 @@ void main() {
   });
   testWidgets('Max purchase refined behavior', (WidgetTester tester) async {
     final box = FakeBox();
+    await box.put('state', {
+      'doubloons': 200,
+      'items': <String, int>{},
+      'progress': <String, double>{},
+    });
     final controller = GameController(
       box: box,
       startTimer: false,
@@ -117,31 +122,38 @@ void main() {
     );
     await tester.pumpWidget(MyApp(controller: controller));
 
+    expect(find.text('Doubloons: 200'), findsOneWidget);
+
+    // Buy Heavy Boots to reveal the Purchase Amount Selector
+    await tester.ensureVisible(find.text('200'));
+    await tester.tap(find.text('200'));
+    await tester.pump();
+
     expect(find.text('Doubloons: 0'), findsOneWidget);
 
     // Select Max
     await tester.tap(find.text('Max'));
     await tester.pump();
 
-    // With 0 doubloons, button should show price of 1 item: "5"
+    // With 0 doubloons, sharper hooks button should show price of 1 item: "5"
     expect(find.text('5'), findsOneWidget);
 
-    // Gain 10 doubloons
+    // Gain doubloons (10 clicks * 16 power = 160 doubloons)
     for (int i = 0; i < 10; i++) {
       await tester.tap(find.text('Open Chest'));
     }
     await tester.pump();
-    expect(find.text('Doubloons: 10'), findsOneWidget);
+    expect(find.text('Doubloons: 160'), findsOneWidget);
 
-    // Now button should show "5" and a suffix " (1)"
-    expect(find.text('5'), findsOneWidget);
-    expect(find.text(' (1)'), findsOneWidget);
+    // Now sharper hooks button should show "145" and a suffix " (12)"
+    expect(find.text('145'), findsOneWidget);
+    expect(find.text(' (12)'), findsOneWidget);
 
     // Buy it
-    await tester.tap(find.text('5'));
+    await tester.tap(find.text('145'));
     await tester.pump();
 
-    expect(find.text('Doubloons: 5'), findsOneWidget);
+    expect(find.text('Doubloons: 15'), findsOneWidget);
 
     await box.close();
   });
