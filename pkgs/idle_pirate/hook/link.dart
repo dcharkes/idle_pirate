@@ -23,6 +23,8 @@ const _itemCategory = 'item';
 
 void main(List<String> args) async {
   await link(args, (LinkInput input, LinkOutputBuilder output) async {
+    if (!input.config.buildDataAssets) return;
+
     final usages = input.recordedUses;
 
     if (usages == null) {

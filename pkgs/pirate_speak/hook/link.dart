@@ -18,6 +18,8 @@ const _translateDynamicMethod = Method('translateDynamic', _translationsLib);
 
 void main(List<String> args) async {
   await link(args, (LinkInput input, LinkOutputBuilder output) async {
+    if (!input.config.buildDataAssets) return;
+
     final usages = input.recordedUses;
 
     if (usages == null || !enableTranslationTreeShaking) {
@@ -65,7 +67,9 @@ void main(List<String> args) async {
     final translationFiles = <File>[];
     if (dir.existsSync()) {
       translationFiles.addAll(
-        dir.listSync().whereType<File>().where((f) => f.path.endsWith('.json')),
+        dir.listSync().whereType<File>().where(
+          (f) => f.path.endsWith('.json'),
+        ),
       );
     }
 
@@ -77,7 +81,10 @@ void main(List<String> args) async {
       });
     }
 
-    final (handledTranslations, translationDeps) = await _treeShakeTranslations(
+    final (
+      handledTranslations,
+      translationDeps,
+    ) = await _treeShakeTranslations(
       translationFiles,
       usedTranslations,
       input.outputDirectoryShared,

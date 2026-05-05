@@ -6,6 +6,8 @@ import 'package:hooks/hooks.dart';
 
 void main(List<String> args) async {
   await build(args, (BuildInput input, BuildOutputBuilder output) async {
+    if (!input.config.buildDataAssets) return;
+
     print('linkingEnabled: ${input.config.linkingEnabled}');
 
     final requestedLanguages = _getRequestedLanguages(input);

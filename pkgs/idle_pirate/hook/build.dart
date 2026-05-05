@@ -4,34 +4,34 @@ import 'package:hooks/hooks.dart';
 
 void main(List<String> args) async {
   await build(args, (BuildInput input, BuildOutputBuilder output) async {
-    if (input.config.buildAssetTypes.contains('data_assets/data')) {
-      final assets = [
-        ..._discoverAssets(
-          input.packageRoot,
-          input.packageName,
-          'assets/images',
-        ),
-        ..._discoverAssets(
-          input.packageRoot,
-          input.packageName,
-          'assets/sounds',
-        ),
-      ];
+    if (!input.config.buildDataAssets) return;
 
-      output.dependencies.addAll(assets.map((a) => a.file));
-      output.dependencies.addAll([
-        input.packageRoot.resolve('assets/images'),
-        input.packageRoot.resolve('assets/sounds'),
-      ]);
+    final assets = [
+      ..._discoverAssets(
+        input.packageRoot,
+        input.packageName,
+        'assets/images',
+      ),
+      ..._discoverAssets(
+        input.packageRoot,
+        input.packageName,
+        'assets/sounds',
+      ),
+    ];
 
-      for (final asset in assets) {
-        output.assets.data.add(
-          asset,
-          routing: input.config.linkingEnabled
-              ? ToLinkHook(input.packageName)
-              : const ToAppBundle(),
-        );
-      }
+    output.dependencies.addAll(assets.map((a) => a.file));
+    output.dependencies.addAll([
+      input.packageRoot.resolve('assets/images'),
+      input.packageRoot.resolve('assets/sounds'),
+    ]);
+
+    for (final asset in assets) {
+      output.assets.data.add(
+        asset,
+        routing: input.config.linkingEnabled
+            ? ToLinkHook(input.packageName)
+            : const ToAppBundle(),
+      );
     }
   });
 }
