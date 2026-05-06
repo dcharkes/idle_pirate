@@ -53,8 +53,8 @@ void main() {
         'Built Runner.app size: ${totalSizeMB.toStringAsFixed(1)}MB ($totalSizeBytes bytes)',
       );
 
-      // Expect the app size to be exactly 39681965 bytes. If the app grows/shrinks, this can be updated.
-      const int expectedSizeBytes = 39681965;
+      // Expect the app size to be exactly 17217870 bytes. If the app grows/shrinks, this can be updated.
+      const int expectedSizeBytes = 17217870;
       expect(
         totalSizeBytes,
         expectedSizeBytes,
@@ -81,12 +81,12 @@ void main() {
       print('Tree-shaken images count: ${imageFiles.length}');
       print('Included image assets: $imageFiles');
 
-      // Assert exactly 33 images remain out of the image assets when treeshaking is disabled
+      // Assert exactly 11 images remain out of the original 31 image assets
       expect(
         imageFiles.length,
-        33,
+        11,
         reason:
-            'Expected exactly 33 images, found ${imageFiles.length}',
+            'Expected exactly 11 tree-shaken images, found ${imageFiles.length}',
       );
 
       // Verify specific expected inclusions (used in the game)
@@ -106,21 +106,21 @@ void main() {
         reason: 'cabin_boy.png should be included',
       );
 
-      // Verify un-tree-shaken inclusions
+      // Verify specific expected exclusions (unused in the game, successfully tree-shaken)
       expect(
         imageFiles.contains('anchor.png'),
-        true,
-        reason: 'anchor.png should be included',
+        false,
+        reason: 'anchor.png should be tree-shaken out',
       );
       expect(
         imageFiles.contains('barrel.png'),
-        true,
-        reason: 'barrel.png should be included',
+        false,
+        reason: 'barrel.png should be tree-shaken out',
       );
       expect(
         imageFiles.contains('kraken.png'),
-        true,
-        reason: 'kraken.png should be included',
+        false,
+        reason: 'kraken.png should be tree-shaken out',
       );
     },
     timeout: const Timeout(Duration(minutes: 5)),

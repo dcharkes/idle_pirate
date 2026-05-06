@@ -229,23 +229,19 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
   Map<String, double> usedImages,
   Uri outputDirectoryShared,
 ) async {
-  final outputAssets = <DataAsset>[];
-  final dependencies = <Uri>{};
-
   if (imageTreeShakingLevel == imageTreeShakingNone) {
-    outputAssets.addAll(assets);
-    dependencies.addAll(assets.map((e) => e.file));
-    return (outputAssets, dependencies);
+    return ([...assets], {...assets.map((e) => e.file)});
   }
 
   // Check for missing image assets
-  for (final id in usedImages.keys) {
-    final assetName = 'assets/images/$id.png';
-    if (!assets.any((a) => a.name == assetName)) {
-      throw StateError(
-        'Missing image asset for ID: $id. Expected $assetName',
-      );
-    }
+  final assetNames = assets.map((a) => a.name).toSet();
+  final missingImages = [
+    for (final id in usedImages.keys)
+      if (!assetNames.contains('assets/images/$id.png'))
+        'assets/images/$id.png',
+  ];
+  if (missingImages.isNotEmpty) {
+    throw StateError('Missing image assets: $missingImages');
   }
 
   final outputDir = Directory.fromUri(outputDirectoryShared.resolve('images/'));
@@ -253,6 +249,8 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
     outputDir.createSync(recursive: true);
   }
 
+  final outputAssets = <DataAsset>[];
+  final dependencies = <Uri>{};
   for (final asset in assets) {
     final filename = asset.name.split('/').last;
     final id = filename.split('.').first;
@@ -273,11 +271,7 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
       final outputFile = File.fromUri(outputDir.uri.resolve(filename));
 
       if (await _shouldResize(sourceFile, outputFile)) {
-        final success = await _resizeIcon(sourceFile, outputFile, sizeStr);
-        if (!success) {
-          outputAssets.add(asset);
-          continue;
-        }
+        await _resizeIcon(sourceFile, outputFile, sizeStr);
       } else {
         print('Asset ${asset.name} is up to date, skipping resize.');
       }
@@ -296,7 +290,7 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
   return (outputAssets, dependencies);
 }
 
-Future<bool> _resizeIcon(File source, File target, String sizeStr) async {
+Future<void> _resizeIcon(File source, File target, String sizeStr) async {
   print('Resizing asset: ${source.path} to $sizeStr');
   final result = await Process.run('magick', [
     source.path,
@@ -306,11 +300,11 @@ Future<bool> _resizeIcon(File source, File target, String sizeStr) async {
   ]);
 
   if (result.exitCode != 0) {
-    stderr.writeln('Failed to resize asset: ${source.path}');
-    stderr.writeln(result.stderr);
-    return false;
+    throw UnsupportedError(
+      'ImageMagick "magick" command execution failed. Please verify that ImageMagick is installed and available in your system PATH.\n'
+      'Error details: Failed to resize asset: ${source.path}\n${result.stderr}',
+    );
   }
-  return true;
 }
 
 Future<bool> _shouldResize(File source, File target) async {
