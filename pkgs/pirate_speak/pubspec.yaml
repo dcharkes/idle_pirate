@@ -1,7 +1,9 @@
 name: pirate_speak
 description: "A new Flutter package project."
 version: 0.0.1
+resolution: workspace
 homepage:
+
 
 environment:
   sdk: ^3.13.0-78.0.dev
