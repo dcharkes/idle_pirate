@@ -62,7 +62,7 @@ Set<String> _usedSounds(Recordings usages) {
   );
   final soundInstances = usages.instances[soundDef];
   if (soundInstances == null) {
-    throw StateError(
+    throw ArgumentError(
       'No recordings found for $soundDef. You need to handle this in the link hook.',
     );
   }
@@ -80,7 +80,7 @@ Set<String> _usedSounds(Recordings usages) {
           positionalArguments: [StringConstant(value: final id)],
         ) =>
           id,
-        _ => throw StateError(
+        _ => throw UnsupportedError(
           'Non-const identifier for sound: $instance',
         ),
       },
@@ -139,7 +139,7 @@ Map<String, double> _usedStaticImages(Recordings usages) {
 
   final staticInstances = usages.instances[staticIconDef];
   if (staticInstances == null) {
-    throw StateError(
+    throw ArgumentError(
       'No recordings found for $staticIconDef. You need to handle this in the link hook.',
     );
   }
@@ -163,7 +163,7 @@ Map<String, double> _usedStaticImages(Recordings usages) {
           ],
         ) =>
           {id: size},
-        _ => throw StateError(
+        _ => throw UnsupportedError(
           'Cannot safely parse StaticIcon instance: $instance',
         ),
       },
@@ -177,7 +177,7 @@ Map<String, double> _usedDynamicImages(
   const dynamicIconDef = Class('DynamicIcon', _imagesLib);
   final dynamicInstances = usages.instances[dynamicIconDef];
   if (dynamicInstances == null) {
-    throw StateError(
+    throw ArgumentError(
       'No recordings found for $dynamicIconDef. You need to handle this in the link hook.',
     );
   }
@@ -202,7 +202,7 @@ Map<String, double> _usedDynamicImages(
           ),
         ) =>
           (category: category, size: size),
-        _ => throw StateError(
+        _ => throw UnsupportedError(
           'Cannot safely parse DynamicIcon instance: $instance',
         ),
       },
@@ -212,7 +212,7 @@ Map<String, double> _usedDynamicImages(
 
   for (final p in parsed) {
     if (!idsPerCategory.containsKey(p.category)) {
-      throw StateError(
+      throw UnsupportedError(
         'Unknown category in DynamicIcon: ${p.category}. You need to handle this in the link hook.',
       );
     }
@@ -241,7 +241,7 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
         'assets/images/$id.png',
   ];
   if (missingImages.isNotEmpty) {
-    throw StateError('Missing image assets: $missingImages');
+    throw ArgumentError('Missing image assets: $missingImages');
   }
 
   final outputDir = Directory.fromUri(outputDirectoryShared.resolve('images/'));
@@ -334,7 +334,7 @@ const _itemCategory = 'item';
 void _checkCategories(Iterable<String> categories, String sourceName) {
   final unknown = categories.where((k) => k != _itemCategory).toList();
   if (unknown.isNotEmpty) {
-    throw StateError(
+    throw UnsupportedError(
       'Unknown categories in $sourceName: $unknown. You need to handle these in the link hook.',
     );
   }
@@ -348,7 +348,7 @@ Set<String> _usedItems(Recordings usages) {
 
   final itemInstances = usages.instances[itemDef];
   if (itemInstances == null) {
-    throw StateError(
+    throw ArgumentError(
       'No recordings found for $itemDef. You need to handle this in the link hook.',
     );
   }
@@ -366,7 +366,9 @@ Set<String> _usedItems(Recordings usages) {
           namedArguments: {'id': StringConstant(value: final id)},
         ) =>
           id,
-        _ => throw StateError('Cannot safely parse Item instance: $instance'),
+        _ => throw UnsupportedError(
+          'Cannot safely parse Item instance: $instance',
+        ),
       },
   };
 }
