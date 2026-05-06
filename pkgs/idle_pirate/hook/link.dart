@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:io';
 import 'package:pirate_speak/src/category_ids.dart';
 import 'package:data_assets/data_assets.dart';
@@ -10,16 +8,14 @@ import 'package:record_use/record_use.dart';
 import '../../../tree_shaking_config.dart';
 
 void main(List<String> args) async {
-  await link(args, (LinkInput input, LinkOutputBuilder output) async {
+  await link(args, (input, output) async {
     if (!input.config.buildDataAssets) return;
 
     final usages = input.recordedUses;
     final dataAssets = input.assets.data;
 
     if (usages == null) {
-      print(
-        'No recorded uses found. Bailing on treeshaking and including all assets.',
-      );
+      // No recorded uses found. Bailing on treeshaking and including all assets.
       output.assets.data.addAll(dataAssets);
       output.dependencies.addAll(dataAssets.map((a) => a.file));
       return;
@@ -43,6 +39,12 @@ void treeshakeSounds(
   LinkOutputBuilder output,
 ) {
   final soundAssets = _soundAssets(dataAssets);
+  if (!enableAudioTreeShaking) {
+    output.assets.data.addAll(soundAssets);
+    output.dependencies.addAll(soundAssets.map((e) => e.file));
+    return;
+  }
+
   final usedSounds = _usedSounds(usages);
   final (filteredSounds, soundDeps) = _filterSounds(
     soundAssets,
@@ -91,10 +93,6 @@ Set<String> _usedSounds(Recordings usages) {
   Iterable<DataAsset> assets,
   Set<String> usedSounds,
 ) {
-  if (!enableAudioTreeShaking) {
-    return ([...assets], {...assets.map((e) => e.file)});
-  }
-
   final outputAssets = <DataAsset>[];
   final dependencies = <Uri>{};
   for (final asset in assets) {
@@ -149,6 +147,12 @@ Future<void> treeshakeImages(
   LinkOutputBuilder output,
 ) async {
   final imageAssets = _imageAssets(dataAssets);
+  if (imageTreeShakingLevel == imageTreeShakingNone) {
+    output.assets.data.addAll(imageAssets);
+    output.dependencies.addAll(imageAssets.map((e) => e.file));
+    return;
+  }
+
   final usedStaticImages = _usedStaticImages(usages);
   final idsPerCategory = {_itemCategory: usedItems};
   final usedDynamicImages = _usedDynamicImages(usages, idsPerCategory);
@@ -262,10 +266,6 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
   Map<String, double> usedImages,
   Uri outputDirectoryShared,
 ) async {
-  if (imageTreeShakingLevel == imageTreeShakingNone) {
-    return ([...assets], {...assets.map((e) => e.file)});
-  }
-
   // Check for missing image assets
   final assetNames = assets.map((a) => a.name).toSet();
   final missingImages = [
@@ -306,7 +306,7 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
       if (await _shouldResize(sourceFile, outputFile)) {
         await _resizeIcon(sourceFile, outputFile, sizeStr);
       } else {
-        print('Asset ${asset.name} is up to date, skipping resize.');
+        // Asset ${asset.name} is up to date, skipping resize.
       }
 
       outputAssets.add(
@@ -317,14 +317,14 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
         ),
       );
     } else {
-      print('Filtering out icon: ${asset.name}');
+      // Filtering out icon: ${asset.name}
     }
   }
   return (outputAssets, dependencies);
 }
 
 Future<void> _resizeIcon(File source, File target, String sizeStr) async {
-  print('Resizing asset: ${source.path} to $sizeStr');
+  // Resizing asset: ${source.path} to $sizeStr
   final result = await Process.run('magick', [
     source.path,
     '-resize',
@@ -381,7 +381,7 @@ void _handleOtherAssets(Iterable<DataAsset> assets, LinkOutputBuilder output) {
   );
 
   for (final asset in otherAssets) {
-    print('Unknown asset type: ${asset.name}');
+    // Unknown asset type: ${asset.name}
     output.assets.data.add(asset);
   }
 }
