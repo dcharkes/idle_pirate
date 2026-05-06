@@ -44,11 +44,11 @@ void treeshakeSounds(
 ) {
   final soundAssets = _soundAssets(dataAssets);
   final usedSounds = _usedSounds(usages);
-  final (handledSounds, soundDeps) = _filterSounds(
+  final (filteredSounds, soundDeps) = _filterSounds(
     soundAssets,
     usedSounds,
   );
-  output.assets.data.addAll(handledSounds);
+  output.assets.data.addAll(filteredSounds);
   output.dependencies.addAll(soundDeps);
 }
 
@@ -60,59 +60,49 @@ Set<String> _usedSounds(Recordings usages) {
     'Sound',
     Library('package:idle_pirate/assets/sounds.dart'),
   );
-
-  final usedSoundIds = <String>{};
   final soundInstances = usages.instances[soundDef];
   if (soundInstances == null) {
     throw StateError(
       'No recordings found for $soundDef. You need to handle this in the link hook.',
     );
   }
-  for (final instance in soundInstances) {
-    switch (instance) {
-      case InstanceConstantReference(
-        instanceConstant: InstanceConstant(
-          fields: {'id': StringConstant(value: final id)},
+
+  return {
+    for (final instance in soundInstances)
+      switch (instance) {
+        InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {'id': StringConstant(value: final id)},
+          ),
+        ) =>
+          id,
+        InstanceCreationReference(
+          positionalArguments: [StringConstant(value: final id)],
+        ) =>
+          id,
+        _ => throw StateError(
+          'Non-const identifier for sound: $instance',
         ),
-      ):
-        usedSoundIds.add(id);
-      case InstanceCreationReference(
-        positionalArguments: [StringConstant(value: final id)],
-      ):
-        usedSoundIds.add(id);
-      case InstanceCreationReference():
-        // Ignore non-const calls
-        break;
-      case _:
-        throw StateError('Cannot safely parse Sound instance: $instance');
-    }
-  }
-  return usedSoundIds;
+      },
+  };
 }
 
 (List<DataAsset>, Set<Uri>) _filterSounds(
   Iterable<DataAsset> assets,
   Set<String> usedSounds,
 ) {
-  final outputAssets = <DataAsset>[];
-  final dependencies = <Uri>{};
-
   if (!enableAudioTreeShaking) {
-    outputAssets.addAll(assets);
-    dependencies.addAll(assets.map((e) => e.file));
-    return (outputAssets, dependencies);
+    return ([...assets], {...assets.map((e) => e.file)});
   }
 
+  final outputAssets = <DataAsset>[];
+  final dependencies = <Uri>{};
   for (final asset in assets) {
     final filename = asset.name.split('/').last;
     final id = filename.split('.').first;
-
-    dependencies.add(asset.file);
     if (usedSounds.contains(id)) {
-      print('Keeping sound: ${asset.name}');
       outputAssets.add(asset);
-    } else {
-      print('Filtering out sound: ${asset.name}');
+      dependencies.add(asset.file);
     }
   }
   return (outputAssets, dependencies);
@@ -130,119 +120,114 @@ Future<void> treeshakeImages(
   final idsPerCategory = {_itemCategory: usedItems};
   final usedDynamicImages = _usedDynamicImages(usages, idsPerCategory);
   final usedImages = {...usedStaticImages, ...usedDynamicImages};
-  final (handledImages, imageDeps) = await _filterImages(
+  final (filteredImages, imageDeps) = await _filterAndResizeImages(
     imageAssets,
     usedImages,
     input.outputDirectoryShared,
   );
-  output.assets.data.addAll(handledImages);
+  output.assets.data.addAll(filteredImages);
   output.dependencies.addAll(imageDeps);
 }
 
 Iterable<DataAsset> _imageAssets(Iterable<DataAsset> assets) =>
     assets.where((a) => a.name.startsWith('assets/images/'));
 
-const _assetsLib = Library('package:idle_pirate/assets/images.dart');
+const _imagesLib = Library('package:idle_pirate/assets/images.dart');
 
 Map<String, double> _usedStaticImages(Recordings usages) {
-  const staticIconDef = Class('StaticIcon', _assetsLib);
+  const staticIconDef = Class('StaticIcon', _imagesLib);
 
-  final iconSizes = <String, double>{};
   final staticInstances = usages.instances[staticIconDef];
   if (staticInstances == null) {
     throw StateError(
       'No recordings found for $staticIconDef. You need to handle this in the link hook.',
     );
   }
-  for (final instance in staticInstances) {
-    switch (instance) {
-      case InstanceConstantReference(
-        instanceConstant: InstanceConstant(
-          fields: {
-            'id': StringConstant(value: final id),
-            'size': DoubleConstant(value: final size),
-          },
+
+  return {
+    for (final instance in staticInstances)
+      ...switch (instance) {
+        InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {
+              'id': StringConstant(value: final id),
+              'size': DoubleConstant(value: final size),
+            },
+          ),
+        ) =>
+          {id: size},
+        InstanceCreationReference(
+          positionalArguments: [
+            StringConstant(value: final id),
+            DoubleConstant(value: final size),
+          ],
+        ) =>
+          {id: size},
+        _ => throw StateError(
+          'Cannot safely parse StaticIcon instance: $instance',
         ),
-      ):
-        iconSizes[id] = size;
-      case InstanceCreationReference(
-        positionalArguments: [
-          StringConstant(value: final id),
-          DoubleConstant(value: final size),
-        ],
-      ):
-        iconSizes[id] = size;
-      case _:
-        throw StateError('Cannot safely parse StaticIcon instance: $instance');
-    }
-  }
-  return iconSizes;
+      },
+  };
 }
 
 Map<String, double> _usedDynamicImages(
   Recordings usages,
   Map<String, Set<String>> idsPerCategory,
 ) {
-  const dynamicIconDef = Class('DynamicIcon', _assetsLib);
-  final usedImages = <String, double>{};
-  final usedCategories = <String>{};
+  const dynamicIconDef = Class('DynamicIcon', _imagesLib);
   final dynamicInstances = usages.instances[dynamicIconDef];
   if (dynamicInstances == null) {
     throw StateError(
       'No recordings found for $dynamicIconDef. You need to handle this in the link hook.',
     );
   }
-  for (final instance in dynamicInstances) {
-    final String category;
-    final double size;
 
-    switch (instance) {
-      case InstanceCreationReference(
-        positionalArguments: [
-          _, // id
-          DoubleConstant(value: final s),
-          StringConstant(value: final c),
-        ],
-      ):
-        category = c;
-        size = s;
-      case InstanceConstantReference(
-        instanceConstant: InstanceConstant(
-          fields: {
-            'size': DoubleConstant(value: final s),
-            'category': StringConstant(value: final c),
-          },
+  final parsed = [
+    for (final instance in dynamicInstances)
+      switch (instance) {
+        InstanceCreationReference(
+          positionalArguments: [
+            _,
+            DoubleConstant(value: final size),
+            StringConstant(value: final category),
+          ],
+        ) =>
+          (category: category, size: size),
+        InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {
+              'size': DoubleConstant(value: final size),
+              'category': StringConstant(value: final category),
+            },
+          ),
+        ) =>
+          (category: category, size: size),
+        _ => throw StateError(
+          'Cannot safely parse DynamicIcon instance: $instance',
         ),
-      ):
-        category = c;
-        size = s;
-      case _:
-        throw StateError('Cannot safely parse DynamicIcon instance: $instance');
-    }
+      },
+  ];
 
-    usedCategories.add(category);
+  _checkCategories(parsed.map((e) => e.category).toSet(), '$dynamicIconDef');
 
-    if (!idsPerCategory.containsKey(category)) {
+  for (final p in parsed) {
+    if (!idsPerCategory.containsKey(p.category)) {
       throw StateError(
-        'Unknown category in DynamicIcon: $category. You need to handle this in the link hook.',
+        'Unknown category in DynamicIcon: ${p.category}. You need to handle this in the link hook.',
       );
-    }
-
-    final ids = idsPerCategory[category] ?? {};
-    for (final id in ids) {
-      usedImages[id] = size;
     }
   }
 
-  _checkCategories(usedCategories, '$dynamicIconDef');
-
-  return usedImages;
+  return {
+    for (final p in parsed)
+      for (final id in idsPerCategory[p.category] ?? <String>{}) id: p.size,
+  };
 }
 
-Future<(List<DataAsset>, Set<Uri>)> _filterImages(
+Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
   Iterable<DataAsset> assets,
   Map<String, double> usedImages,
-  Uri baseOutputDir,
+  Uri outputDirectoryShared,
 ) async {
   final outputAssets = <DataAsset>[];
   final dependencies = <Uri>{};
@@ -263,7 +248,7 @@ Future<(List<DataAsset>, Set<Uri>)> _filterImages(
     }
   }
 
-  final outputDir = Directory.fromUri(baseOutputDir.resolve('images/'));
+  final outputDir = Directory.fromUri(outputDirectoryShared.resolve('images/'));
   if (!outputDir.existsSync()) {
     outputDir.createSync(recursive: true);
   }
@@ -280,7 +265,8 @@ Future<(List<DataAsset>, Set<Uri>)> _filterImages(
       }
 
       final logicalSize = usedImages[id]!;
-      final targetSize = (logicalSize * 3.0).toInt();
+      const devicePixelRatio = 3.0;
+      final targetSize = (logicalSize * devicePixelRatio).toInt();
       final sizeStr = '${targetSize}x$targetSize';
 
       final sourceFile = File.fromUri(asset.file);
@@ -366,30 +352,29 @@ Set<String> _usedItems(Recordings usages) {
     Library('package:idle_pirate/models/item.dart'),
   );
 
-  final usedItemIds = <String>{};
   final itemInstances = usages.instances[itemDef];
   if (itemInstances == null) {
     throw StateError(
       'No recordings found for $itemDef. You need to handle this in the link hook.',
     );
   }
-  for (final instance in itemInstances) {
-    switch (instance) {
-      case InstanceConstantReference(
-        instanceConstant: InstanceConstant(
-          fields: {'id': StringConstant(value: final id)},
-        ),
-      ):
-        usedItemIds.add(id);
-      case InstanceCreationReference(
-        namedArguments: {'id': StringConstant(value: final id)},
-      ):
-        usedItemIds.add(id);
-      case _:
-        throw StateError('Cannot safely parse Item instance: $instance');
-    }
-  }
-  return usedItemIds;
+
+  return {
+    for (final instance in itemInstances)
+      switch (instance) {
+        InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {'id': StringConstant(value: final id)},
+          ),
+        ) =>
+          id,
+        InstanceCreationReference(
+          namedArguments: {'id': StringConstant(value: final id)},
+        ) =>
+          id,
+        _ => throw StateError('Cannot safely parse Item instance: $instance'),
+      },
+  };
 }
 
 void _handleOtherAssets(Iterable<DataAsset> assets, LinkOutputBuilder output) {
