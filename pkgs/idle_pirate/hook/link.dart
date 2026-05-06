@@ -11,8 +11,8 @@ void main(List<String> args) async {
   await link(args, (input, output) async {
     if (!input.config.buildDataAssets) return;
 
-    final usages = input.recordedUses;
     final dataAssets = input.assets.data;
+    final usages = input.recordedUses;
 
     if (usages == null) {
       // No recorded uses found. Bailing on treeshaking and including all assets.
@@ -46,12 +46,12 @@ void treeshakeSounds(
   }
 
   final usedSounds = _usedSounds(usages);
-  final (filteredSounds, soundDeps) = _filterSounds(
+  final filteredSounds = _filterSounds(
     soundAssets,
     usedSounds,
   );
   output.assets.data.addAll(filteredSounds);
-  output.dependencies.addAll(soundDeps);
+  output.dependencies.addAll(filteredSounds.map((e) => e.file));
 }
 
 Iterable<DataAsset> _soundAssets(Iterable<DataAsset> assets) =>
@@ -89,21 +89,15 @@ Set<String> _usedSounds(Recordings usages) {
   };
 }
 
-(List<DataAsset>, Set<Uri>) _filterSounds(
+Iterable<DataAsset> _filterSounds(
   Iterable<DataAsset> assets,
   Set<String> usedSounds,
 ) {
-  final outputAssets = <DataAsset>[];
-  final dependencies = <Uri>{};
-  for (final asset in assets) {
+  return assets.where((asset) {
     final filename = asset.name.split('/').last;
     final id = filename.split('.').first;
-    if (usedSounds.contains(id)) {
-      outputAssets.add(asset);
-      dependencies.add(asset.file);
-    }
-  }
-  return (outputAssets, dependencies);
+    return usedSounds.contains(id);
+  });
 }
 
 Set<String> _usedItems(Recordings usages) {
