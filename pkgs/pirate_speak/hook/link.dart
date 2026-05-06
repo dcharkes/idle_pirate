@@ -21,13 +21,15 @@ void main(List<String> args) async {
     if (!input.config.buildDataAssets) return;
 
     final usages = input.recordedUses;
+    final requestedLanguages = _getRequestedLanguages(input);
 
     if (usages == null || !enableTranslationTreeShaking) {
       print(
-        'No recorded uses found. Bailing on treeshaking and including all assets.',
+        'No recorded uses found or tree-shaking disabled. Including assets.',
       );
-      output.assets.data.addAll(input.assets.data);
-      output.dependencies.addAll(input.assets.data.map((a) => a.file));
+      final assets = _filterByLanguage(input.assets.data, requestedLanguages);
+      output.assets.data.addAll(assets);
+      output.dependencies.addAll(assets.map((a) => a.file));
       return;
     }
 
@@ -63,24 +65,13 @@ void main(List<String> args) async {
       ...usedDynamicTranslations,
     };
 
-    // Read translation files directly from filesystem!
-    final dir = Directory('assets/translations/');
-    final translationFiles = <File>[];
-    if (dir.existsSync()) {
-      translationFiles.addAll(
-        dir.listSync().whereType<File>().where(
-          (f) => f.path.endsWith('.json'),
-        ),
-      );
-    }
-
-    final requestedLanguages = _getRequestedLanguages(input);
-    if (requestedLanguages != null && translationTreeShakingLookAtUserDefines) {
-      translationFiles.retainWhere((file) {
-        final lang = file.uri.pathSegments.last.split('.').first;
-        return requestedLanguages.contains(lang);
-      });
-    }
+    final filteredAssets = _filterByLanguage(
+      input.assets.data,
+      requestedLanguages,
+    );
+    final translationFiles = filteredAssets
+        .map((a) => File.fromUri(a.file))
+        .toList();
 
     final (
       handledTranslations,
@@ -221,4 +212,17 @@ Set<String>? _getRequestedLanguages(LinkInput input) {
     list.addAll(requestedLanguages.split(',').map((e) => e.trim()));
   }
   return list;
+}
+
+List<DataAsset> _filterByLanguage(
+  Iterable<DataAsset> assets,
+  Set<String>? requestedLanguages,
+) {
+  if (requestedLanguages == null || !translationTreeShakingLookAtUserDefines) {
+    return assets.toList();
+  }
+  return assets.where((a) {
+    final lang = a.name.split('/').last.split('.').first;
+    return requestedLanguages.contains(lang);
+  }).toList();
 }

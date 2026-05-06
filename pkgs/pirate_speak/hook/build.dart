@@ -10,15 +10,11 @@ void main(List<String> args) async {
 
     print('linkingEnabled: ${input.config.linkingEnabled}');
 
-    final requestedLanguages = _getRequestedLanguages(input);
-
-    final allAssets = _discoverAssets(
+    final assets = _discoverAssets(
       input.packageRoot,
       input.packageName,
       'assets/translations',
     );
-
-    final assets = _filterByLanguage(allAssets, requestedLanguages);
 
     output.dependencies.addAll(assets.map((a) => a.file));
 
@@ -60,29 +56,3 @@ List<DataAsset> _discoverAssets(
   return assets;
 }
 
-List<DataAsset> _filterByLanguage(
-  List<DataAsset> assets,
-  Set<String>? requestedLanguages,
-) {
-  return assets.where((a) {
-    final lang = a.name.split('/').last.split('.').first;
-    if (requestedLanguages != null && !requestedLanguages.contains(lang)) {
-      print('Skipping translation file not requested: ${a.name}');
-      return false;
-    }
-    return true;
-  }).toList();
-}
-
-Set<String>? _getRequestedLanguages(BuildInput input) {
-  final requestedLanguages = input.userDefines['translations'];
-  if (requestedLanguages == null) return null;
-
-  final list = <String>{};
-  if (requestedLanguages is List) {
-    list.addAll(requestedLanguages.cast<String>());
-  } else if (requestedLanguages is String) {
-    list.addAll(requestedLanguages.split(',').map((e) => e.trim()));
-  }
-  return list;
-}
