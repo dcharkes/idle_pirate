@@ -108,6 +108,39 @@ Set<String> _usedSounds(Recordings usages) {
   return (outputAssets, dependencies);
 }
 
+Set<String> _usedItems(Recordings usages) {
+  const itemDef = Class(
+    'Item',
+    Library('package:idle_pirate/models/item.dart'),
+  );
+
+  final itemInstances = usages.instances[itemDef];
+  if (itemInstances == null) {
+    throw ArgumentError(
+      'No recordings found for $itemDef. You need to handle this in the link hook.',
+    );
+  }
+
+  return {
+    for (final instance in itemInstances)
+      switch (instance) {
+        InstanceConstantReference(
+          instanceConstant: InstanceConstant(
+            fields: {'id': StringConstant(value: final id)},
+          ),
+        ) =>
+          id,
+        InstanceCreationReference(
+          namedArguments: {'id': StringConstant(value: final id)},
+        ) =>
+          id,
+        _ => throw UnsupportedError(
+          'Cannot safely parse Item instance: $instance',
+        ),
+      },
+  };
+}
+
 Future<void> treeshakeImages(
   Iterable<DataAsset> dataAssets,
   Recordings usages,
@@ -338,39 +371,6 @@ void _checkCategories(Iterable<String> categories, String sourceName) {
       'Unknown categories in $sourceName: $unknown. You need to handle these in the link hook.',
     );
   }
-}
-
-Set<String> _usedItems(Recordings usages) {
-  const itemDef = Class(
-    'Item',
-    Library('package:idle_pirate/models/item.dart'),
-  );
-
-  final itemInstances = usages.instances[itemDef];
-  if (itemInstances == null) {
-    throw ArgumentError(
-      'No recordings found for $itemDef. You need to handle this in the link hook.',
-    );
-  }
-
-  return {
-    for (final instance in itemInstances)
-      switch (instance) {
-        InstanceConstantReference(
-          instanceConstant: InstanceConstant(
-            fields: {'id': StringConstant(value: final id)},
-          ),
-        ) =>
-          id,
-        InstanceCreationReference(
-          namedArguments: {'id': StringConstant(value: final id)},
-        ) =>
-          id,
-        _ => throw UnsupportedError(
-          'Cannot safely parse Item instance: $instance',
-        ),
-      },
-  };
 }
 
 void _handleOtherAssets(Iterable<DataAsset> assets, LinkOutputBuilder output) {
