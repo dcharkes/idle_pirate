@@ -12,6 +12,6 @@ workspace:
 hooks:
   user_defines:
     pirate_speak:
-      translations: [en, pirate_en, es, pirate_es, nl, pirate_nl]
+      languages: [en, pirate_en, es, pirate_es, nl, pirate_nl]
 
 

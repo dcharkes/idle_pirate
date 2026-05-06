@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
@@ -10,140 +8,120 @@ import 'package:record_use/record_use.dart';
 
 import '../../../tree_shaking_config.dart';
 
-// Top-level constants for lookup
-const _translationsLib = Library('package:pirate_speak/pirate_speak.dart');
-
-const _translateMethod = Method('translate', _translationsLib);
-const _translateDynamicMethod = Method('translateDynamic', _translationsLib);
-
 void main(List<String> args) async {
-  await link(args, (LinkInput input, LinkOutputBuilder output) async {
+  await link(args, (input, output) async {
     if (!input.config.buildDataAssets) return;
 
+    final dataAssets = input.assets.data;
     final usages = input.recordedUses;
-    final requestedLanguages = _getRequestedLanguages(input);
 
-    if (usages == null || !enableTranslationTreeShaking) {
-      print(
-        'No recorded uses found or tree-shaking disabled. Including assets.',
-      );
-      final assets = _filterByLanguage(input.assets.data, requestedLanguages);
-      output.assets.data.addAll(assets);
-      output.dependencies.addAll(assets.map((a) => a.file));
-      return;
-    }
+    await treeshakeTranslations(dataAssets, usages, input, output);
 
-    final usedStaticTranslations = _usedStaticTranslations(usages);
-    final usedCategories = _usedCategories(usages);
-
-    // Read routed assets for category IDs!
-    final categoryIdsList = await PirateSpeakCategoryIds.fromInput(input);
-
-    final usedDynamicTranslations = <String>{};
-    final receivedCategories = <String>{};
-    for (final categoryIds in categoryIdsList) {
-      for (final entry in categoryIds.categoryIds.entries) {
-        receivedCategories.add(entry.key);
-        usedDynamicTranslations.addAll(entry.value);
-      }
-      print(
-        'Received category IDs for: ${categoryIds.categoryIds.keys.toList()}',
-      );
-    }
-
-    // Check for missing IDs for a used category!
-    for (final category in usedCategories) {
-      if (!receivedCategories.contains(category)) {
-        throw StateError(
-          'Missing IDs for category: $category. You need to send them from the parent package using AssetRouting.',
-        );
-      }
-    }
-
-    final usedTranslations = {
-      ...usedStaticTranslations,
-      ...usedDynamicTranslations,
-    };
-
-    final filteredAssets = _filterByLanguage(
-      input.assets.data,
-      requestedLanguages,
-    );
-    final translationFiles = filteredAssets
-        .map((a) => File.fromUri(a.file))
-        .toList();
-
-    final (
-      handledTranslations,
-      translationDeps,
-    ) = await _treeShakeTranslations(
-      translationFiles,
-      usedTranslations,
-      input.outputDirectoryShared,
-    );
-
-    output.assets.data.addAll(handledTranslations);
-    output.dependencies.addAll(translationDeps);
-
-    // Verify no unsupported assets are sent in input.assetsFromLinking!
-    final unsupportedAssets = input.assets.assetsFromLinking
-        .where((e) => e.isDataAsset)
-        .map(DataAsset.fromEncoded)
-        .where(
-          (a) =>
-              !a.name.startsWith('assets/translations/') &&
-              a.name != 'pirate_speak_category_ids',
-        )
-        .toList();
-
-    if (unsupportedAssets.isNotEmpty) {
-      throw StateError(
-        'Unsupported assets sent to link hook in pirate_speak: ${unsupportedAssets.map((a) => a.name).toList()}',
-      );
-    }
+    _verifyAssetsFromLinking(input);
   });
 }
 
+Future<void> treeshakeTranslations(
+  Iterable<DataAsset> dataAssets,
+  Recordings? usages,
+  LinkInput input,
+  LinkOutputBuilder output,
+) async {
+  final requestedLanguages = _getRequestedLanguages(input);
+
+  if (usages == null || !enableTranslationTreeShaking) {
+    // No recorded uses found or tree-shaking disabled. Including assets.
+    final assets = _filterByLanguage(dataAssets, requestedLanguages);
+    output.assets.data.addAll(assets);
+    output.dependencies.addAll(assets.map((a) => a.file));
+    return;
+  }
+
+  final usedStaticTranslations = _usedStaticTranslations(usages);
+  final usedCategories = _usedDynamicTranslations(usages);
+  final receivedCategoryKeys = await _receivedCategoryKeys(input);
+  _errorOnMissingCategories(usedCategories, receivedCategoryKeys);
+  final usedTranslations = {
+    ...usedStaticTranslations,
+    for (final category in usedCategories) ...(receivedCategoryKeys[category]!),
+  };
+
+  final filteredAssets = _filterByLanguage(dataAssets, requestedLanguages);
+  final (
+    prunedTranslations,
+    translationDeps,
+  ) = await _pruneTranslations(
+    filteredAssets,
+    usedTranslations,
+    input.outputDirectoryShared,
+  );
+
+  output.assets.data.addAll(prunedTranslations);
+  output.dependencies.addAll(translationDeps);
+}
+
+void _verifyAssetsFromLinking(LinkInput input) {
+  // Verify no unsupported assets are sent in input.assetsFromLinking!
+  final unsupportedAssets = input.assets.assetsFromLinking
+      .where((e) => e.isDataAsset)
+      .map(DataAsset.fromEncoded)
+      .where(
+        (a) =>
+            !a.name.startsWith('assets/translations/') &&
+            a.name != 'pirate_speak_category_ids',
+      )
+      .toList();
+
+  if (unsupportedAssets.isNotEmpty) {
+    throw UnsupportedError(
+      'Unsupported assets sent to link hook in pirate_speak: ${unsupportedAssets.map((a) => a.name).toList()}',
+    );
+  }
+}
+
+const _translationsLib = Library('package:pirate_speak/pirate_speak.dart');
+
 Set<String> _usedStaticTranslations(Recordings usages) {
-  final usedTranslationKeys = <String>{};
-  final translateCalls = usages.calls[_translateMethod];
+  const translateMethod = Method('translate', _translationsLib);
+  final translateCalls = usages.calls[translateMethod];
   if (translateCalls == null) {
-    print('No recordings found for $_translateMethod.');
-    return usedTranslationKeys;
+    return <String>{};
   }
-  for (final call in translateCalls) {
-    switch (call) {
-      case CallWithArguments(
-        positionalArguments: [StringConstant(value: final key), ...],
-      ):
-        usedTranslationKeys.add(key);
-      case _:
-        throw StateError('Cannot safely parse translate call: $call.');
-    }
-  }
-  return usedTranslationKeys;
+  return {
+    for (final call in translateCalls)
+      switch (call) {
+        CallWithArguments(
+          positionalArguments: [StringConstant(value: final key), ...],
+        ) =>
+          key,
+        _ => throw UnsupportedError(
+          'Cannot safely parse translate call: $call.',
+        ),
+      },
+  };
 }
 
-Set<String> _usedCategories(Recordings usages) {
-  final categories = <String>{};
-  final translateCalls = usages.calls[_translateDynamicMethod];
-  if (translateCalls == null) return categories;
+Set<String> _usedDynamicTranslations(Recordings usages) {
+  const translateDynamicMethod = Method('translateDynamic', _translationsLib);
+  final translateCalls = usages.calls[translateDynamicMethod];
+  if (translateCalls == null) return <String>{};
 
-  for (final call in translateCalls) {
-    switch (call) {
-      case CallWithArguments(
-        positionalArguments: [_, StringConstant(value: final category), ...],
-      ):
-        categories.add(category);
-      case _:
-        throw StateError('Cannot safely parse translateDynamic call: $call');
-    }
-  }
-  return categories;
+  return {
+    for (final call in translateCalls)
+      switch (call) {
+        CallWithArguments(
+          positionalArguments: [_, StringConstant(value: final category), ...],
+        ) =>
+          category,
+        _ => throw UnsupportedError(
+          'Cannot safely parse translateDynamic call: $call',
+        ),
+      },
+  };
 }
 
-Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
-  Iterable<File> files,
+Future<(List<DataAsset>, Set<Uri>)> _pruneTranslations(
+  Iterable<DataAsset> assets,
   Set<String> usedTranslations,
   Uri baseOutputDir,
 ) async {
@@ -155,7 +133,8 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
     outputDir.createSync(recursive: true);
   }
 
-  for (final file in files) {
+  for (final asset in assets) {
+    final file = File.fromUri(asset.file);
     final filename = file.uri.pathSegments.last;
     final name = 'assets/translations/$filename';
 
@@ -166,7 +145,7 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
     // Check for missing translation keys in ALL files
     for (final key in usedTranslations) {
       if (!jsonMap.containsKey(key)) {
-        throw StateError(
+        throw ArgumentError(
           'Missing translation key in $name: $key. You need to add it.',
         );
       }
@@ -181,7 +160,7 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
       if (usedTranslations.contains(key)) {
         filteredMap[key] = value;
       } else {
-        print('Filtering out unused translation key: $key');
+        // Filtering out unused translation key: $key
       }
     }
 
@@ -189,10 +168,6 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
     final filteredJsonStr = encoder.convert(filteredMap);
     final outputFile = File.fromUri(outputDir.uri.resolve(filename));
     await outputFile.writeAsString(filteredJsonStr);
-
-    print(
-      'Filtered translation file: $name, kept ${filteredMap.length}/${jsonMap.length} keys.',
-    );
 
     outputAssets.add(
       DataAsset(package: 'pirate_speak', name: name, file: outputFile.uri),
@@ -202,7 +177,7 @@ Future<(List<DataAsset>, Set<Uri>)> _treeShakeTranslations(
 }
 
 Set<String>? _getRequestedLanguages(LinkInput input) {
-  final requestedLanguages = (input as dynamic).userDefines?['translations'];
+  final requestedLanguages = (input as dynamic).userDefines?['languages'];
   if (requestedLanguages == null) return null;
 
   final list = <String>{};
@@ -225,4 +200,28 @@ List<DataAsset> _filterByLanguage(
     final lang = a.name.split('/').last.split('.').first;
     return requestedLanguages.contains(lang);
   }).toList();
+}
+
+Future<Map<String, Set<String>>> _receivedCategoryKeys(LinkInput input) async {
+  final categoryIdsList = await PirateSpeakCategoryIds.fromInput(input);
+  final map = <String, Set<String>>{};
+  for (final categoryIds in categoryIdsList) {
+    for (final entry in categoryIds.categoryIds.entries) {
+      map.putIfAbsent(entry.key, () => <String>{}).addAll(entry.value);
+    }
+  }
+  return map;
+}
+
+void _errorOnMissingCategories(
+  Set<String> usedCategories,
+  Map<String, Set<String>> receivedCategoryKeys,
+) {
+  for (final category in usedCategories) {
+    if (!receivedCategoryKeys.containsKey(category)) {
+      throw UnsupportedError(
+        'Missing IDs for category: $category. You need to send them from the parent package using AssetRouting.',
+      );
+    }
+  }
 }

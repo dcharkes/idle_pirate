@@ -2,6 +2,22 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:meta/meta.dart';
 
+@RecordUse()
+String translate(
+  @mustBeConst String key,
+) {
+  return _translations[key] ?? key;
+}
+
+@RecordUse()
+String translateDynamic(
+  String key,
+
+  @mustBeConst String category,
+) {
+  return _translations[key] ?? key;
+}
+
 const Map<String, String> allLanguages = {
   'en': '🇺🇸 EN',
   'pirate_en': '🏴‍☠️ EN',
@@ -49,22 +65,6 @@ Future<List<String>> loadAvailableLanguages() async {
   }
   if (!langs.contains('en')) langs.add('en');
   return langs;
-}
-
-@RecordUse()
-String translate(
-  @mustBeConst String key,
-) {
-  return _translations[key] ?? key;
-}
-
-@RecordUse()
-String translateDynamic(
-  String key,
-
-  @mustBeConst String category,
-) {
-  return _translations[key] ?? key;
 }
 
 @visibleForTesting
