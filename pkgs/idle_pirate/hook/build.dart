@@ -19,20 +19,18 @@ void main(List<String> args) async {
       ),
     ];
 
-    output.dependencies.addAll(assets.map((a) => a.file));
+    output.assets.data.addAll(
+      assets,
+      routing: input.config.linkingEnabled
+          ? ToLinkHook(input.packageName)
+          : const ToAppBundle(),
+    );
+
     output.dependencies.addAll([
+      ...assets.map((a) => a.file),
       input.packageRoot.resolve('assets/images'),
       input.packageRoot.resolve('assets/sounds'),
     ]);
-
-    for (final asset in assets) {
-      output.assets.data.add(
-        asset,
-        routing: input.config.linkingEnabled
-            ? ToLinkHook(input.packageName)
-            : const ToAppBundle(),
-      );
-    }
   });
 }
 
