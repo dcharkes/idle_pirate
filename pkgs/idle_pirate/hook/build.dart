@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
 
@@ -28,8 +29,8 @@ void main(List<String> args) async {
 
     output.dependencies.addAll([
       ...assets.map((a) => a.file),
-      input.packageRoot.resolve('assets/images'),
-      input.packageRoot.resolve('assets/sounds'),
+      input.packageRoot.resolve('assets/images/'),
+      input.packageRoot.resolve('assets/sounds/'),
     ]);
   });
 }
