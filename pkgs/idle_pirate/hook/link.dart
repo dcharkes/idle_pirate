@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:pirate_speak/src/category_ids.dart';
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
@@ -28,8 +29,6 @@ void main(List<String> args) async {
     await treeshakeImages(dataAssets, usages, usedItems, input, output);
 
     await treeshakeTranslations(usedItems, output, input);
-
-    _handleOtherAssets(dataAssets, output);
   });
 }
 
@@ -78,10 +77,6 @@ Set<String> _usedSounds(Recordings usages) {
           ),
         ) =>
           id,
-        InstanceCreationReference(
-          positionalArguments: [StringConstant(value: final id)],
-        ) =>
-          id,
         _ => throw UnsupportedError(
           'Non-const identifier for sound: $instance',
         ),
@@ -120,10 +115,6 @@ Set<String> _usedItems(Recordings usages) {
           instanceConstant: InstanceConstant(
             fields: {'id': StringConstant(value: final id)},
           ),
-        ) =>
-          id,
-        InstanceCreationReference(
-          namedArguments: {'id': StringConstant(value: final id)},
         ) =>
           id,
         _ => throw UnsupportedError(
@@ -187,13 +178,6 @@ Map<String, double> _usedStaticImages(Recordings usages) {
           ),
         ) =>
           {id: size},
-        InstanceCreationReference(
-          positionalArguments: [
-            StringConstant(value: final id),
-            DoubleConstant(value: final size),
-          ],
-        ) =>
-          {id: size},
         _ => throw UnsupportedError(
           'Cannot safely parse StaticIcon instance: $instance',
         ),
@@ -224,22 +208,11 @@ Map<String, double> _usedDynamicImages(
           ],
         ) =>
           (category: category, size: size),
-        InstanceConstantReference(
-          instanceConstant: InstanceConstant(
-            fields: {
-              'size': DoubleConstant(value: final size),
-              'category': StringConstant(value: final category),
-            },
-          ),
-        ) =>
-          (category: category, size: size),
         _ => throw UnsupportedError(
           'Cannot safely parse DynamicIcon instance: $instance',
         ),
       },
   ];
-
-  _checkCategories(parsed.map((e) => e.category).toSet(), '$dynamicIconDef');
 
   for (final p in parsed) {
     if (!idsPerCategory.containsKey(p.category)) {
@@ -357,25 +330,3 @@ Future<void> treeshakeTranslations(
 }
 
 const _itemCategory = 'item';
-
-void _checkCategories(Iterable<String> categories, String sourceName) {
-  final unknown = categories.where((k) => k != _itemCategory).toList();
-  if (unknown.isNotEmpty) {
-    throw UnsupportedError(
-      'Unknown categories in $sourceName: $unknown. You need to handle these in the link hook.',
-    );
-  }
-}
-
-void _handleOtherAssets(Iterable<DataAsset> assets, LinkOutputBuilder output) {
-  final otherAssets = assets.where(
-    (a) =>
-        !a.name.startsWith('assets/images/') &&
-        !a.name.startsWith('assets/sounds/'),
-  );
-
-  for (final asset in otherAssets) {
-    // Unknown asset type: ${asset.name}
-    output.assets.data.add(asset);
-  }
-}

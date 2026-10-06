@@ -4,6 +4,7 @@ import '../../assets/images.dart';
 import '../../models/item.dart';
 import '../../models/game_state.dart';
 import '../../state/game_controller.dart';
+
 import 'package:pirate_speak/pirate_speak.dart';
 
 class GameScreen extends StatefulWidget {
@@ -436,14 +437,11 @@ class ItemTile extends StatelessWidget {
     final suffixText = (amountToBuy > 0 && isMax) ? ' ($amountToBuy)' : '';
 
     Widget subtitle;
-    final duration = item.duration?.inSeconds.toDouble();
-    final cycleReward = duration != null ? item.reward.value * duration : 0.0;
-
     if (item.isGenerator) {
       subtitle = Text(
         translate('generator_reward')
-            .replaceAll('{amount}', Doubloon(cycleReward.toInt()).compact)
-            .replaceAll('{seconds}', duration!.toInt().toString()),
+            .replaceAll('{amount}', item.cycleReward.compact)
+            .replaceAll('{seconds}', item.duration!.inSeconds.toString()),
         style: const TextStyle(color: Colors.white70),
       );
     } else {

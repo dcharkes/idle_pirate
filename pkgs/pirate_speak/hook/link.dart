@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:pirate_speak/src/category_ids.dart';
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
@@ -16,8 +17,6 @@ void main(List<String> args) async {
     final usages = input.recordedUses;
 
     await treeshakeTranslations(dataAssets, usages, input, output);
-
-    _verifyAssetsFromLinking(input);
   });
 }
 
@@ -58,25 +57,6 @@ Future<void> treeshakeTranslations(
 
   output.assets.data.addAll(prunedTranslations);
   output.dependencies.addAll(translationDeps);
-}
-
-void _verifyAssetsFromLinking(LinkInput input) {
-  // Verify no unsupported assets are sent in input.assetsFromLinking!
-  final unsupportedAssets = input.assets.assetsFromLinking
-      .where((e) => e.isDataAsset)
-      .map(DataAsset.fromEncoded)
-      .where(
-        (a) =>
-            !a.name.startsWith('assets/translations/') &&
-            a.name != 'pirate_speak_category_ids',
-      )
-      .toList();
-
-  if (unsupportedAssets.isNotEmpty) {
-    throw UnsupportedError(
-      'Unsupported assets sent to link hook in pirate_speak: ${unsupportedAssets.map((a) => a.name).toList()}',
-    );
-  }
 }
 
 const _translationsLib = Library('package:pirate_speak/pirate_speak.dart');
@@ -176,18 +156,8 @@ Future<(List<DataAsset>, Set<Uri>)> _pruneTranslations(
   return (outputAssets, dependencies);
 }
 
-Set<String>? _getRequestedLanguages(LinkInput input) {
-  final requestedLanguages = (input as dynamic).userDefines?['languages'];
-  if (requestedLanguages == null) return null;
-
-  final list = <String>{};
-  if (requestedLanguages is List) {
-    list.addAll(requestedLanguages.cast<String>());
-  } else if (requestedLanguages is String) {
-    list.addAll(requestedLanguages.split(',').map((e) => e.trim()));
-  }
-  return list;
-}
+Set<String>? _getRequestedLanguages(LinkInput input) =>
+    (input.userDefines['languages'] as List?)?.cast<String>().toSet();
 
 List<DataAsset> _filterByLanguage(
   Iterable<DataAsset> assets,

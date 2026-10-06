@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:hive/hive.dart';
 import 'package:mini_audio/mini_audio.dart';
+
 import '../assets/sounds.dart';
 import '../models/game_state.dart';
 import '../models/item.dart';
@@ -31,49 +32,31 @@ class GameController extends ChangeNotifier {
 
   MiniAudio? _audio;
 
-  void _initializeAudio() async {
+  void _initializeAudio() {
     try {
       _audio = MiniAudio();
-      await _extractAudioAssets();
     } catch (e) {
       // ignore: avoid_print
       print('Failed to initialize audio: $e');
     }
   }
 
-  Future<void> _extractAudioAssets() async {
-    final tempDir = Directory.systemTemp;
-
-    itemSounds;
-    for (final sound in Sound.used) {
-      final file = File('${tempDir.path}/${sound.id}.mp3');
-      if (!file.existsSync()) {
-        try {
-          final data = await sound.load();
-          final bytes = data.buffer.asUint8List(
-            data.offsetInBytes,
-            data.lengthInBytes,
-          );
-          await file.writeAsBytes(bytes);
-        } catch (e) {
-          // ignore: avoid_print
-          print('Asset ${sound.id} not found or filtered out: $e');
-        }
-      }
-    }
-  }
-
-  void _playSound(Sound sound) {
+  Future<void> _playSound(Sound sound) async {
     if (_audio == null) return;
-    final tempDir = Directory.systemTemp;
-    final file = File('${tempDir.path}/${sound.id}.mp3');
-    if (file.existsSync()) {
-      try {
-        _audio!.playSound(file.path);
-      } catch (e) {
-        // ignore: avoid_print
-        print('Failed to play sound ${sound.id}: $e');
+    final file = File('${Directory.systemTemp.path}/${sound.id}.mp3');
+    try {
+      if (!file.existsSync()) {
+        final data = await sound.load();
+        final bytes = data.buffer.asUint8List(
+          data.offsetInBytes,
+          data.lengthInBytes,
+        );
+        await file.writeAsBytes(bytes);
       }
+      _audio!.playSound(file.path);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to play sound ${sound.id}: $e');
     }
   }
 
@@ -169,10 +152,6 @@ class GameController extends ChangeNotifier {
       _saveState();
       notifyListeners();
     }
-  }
-
-  void buyUpgrade(Item item) {
-    buyUpgrades(item, 1);
   }
 
   void resetGame() {

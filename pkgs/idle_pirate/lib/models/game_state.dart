@@ -94,9 +94,7 @@ class GameState {
           final fullCycles = (totalElapsedWithCurrentProgress / duration)
               .floor();
           final remainderSeconds = totalElapsedWithCurrentProgress % duration;
-          final cycleReward = item.reward.value * count * duration;
-
-          totalEarnings += (fullCycles * cycleReward).toInt();
+          totalEarnings += fullCycles * count * item.cycleReward.value;
 
           newProgress[item] = remainderSeconds / duration;
           stateChanged = true;

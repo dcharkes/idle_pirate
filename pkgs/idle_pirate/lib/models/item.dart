@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:meta/meta.dart';
 
 extension type const Doubloon(int value) {
@@ -53,6 +54,8 @@ final class Item {
   }
 
   bool get isGenerator => duration != null;
+
+  Doubloon get cycleReward => reward * (duration?.inSeconds ?? 0);
 
   static const sharperHooks = Item._(
     id: 'sharper_hooks',
@@ -126,13 +129,9 @@ final class Item {
     frigate,
   ];
 
-  static const allGenerators = [
-    ...personnel,
-    ...fleet,
-  ];
-
   static const all = [
     ...equipment,
-    ...allGenerators,
+    ...personnel,
+    ...fleet,
   ];
 }

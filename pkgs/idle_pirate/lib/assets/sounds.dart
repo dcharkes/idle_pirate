@@ -21,11 +21,6 @@ final class Sound {
   static const shovel = Sound._('shovel');
   static const yarr = Sound._('yarr');
 
-  static final used = {
-    ...itemSounds.values,
-    coin,
-  };
-
   Future<ByteData> load() {
     return rootBundle.load('packages/idle_pirate/assets/sounds/$id.mp3');
   }

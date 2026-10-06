@@ -9,9 +9,3 @@ const int imageTreeShakingLevel = imageTreeShakingFilterAndResize;
 const bool enableTranslationTreeShaking = true;
 const bool translationTreeShakingLookAtUserDefines = true;
 const bool enableNativeTreeShaking = true;
-
-// const bool enableAudioTreeShaking = true;
-// const int imageTreeShakingLevel = imageTreeShakingFilterAndResize;
-// const bool enableTranslationTreeShaking = true;
-// const bool translationTreeShakingLookAtUserDefines = true;
-// const bool enableNativeTreeShaking = true;

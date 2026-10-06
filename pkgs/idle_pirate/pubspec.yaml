@@ -36,11 +36,11 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
 flutter_launcher_icons:
-  image_path: "assets/images/pirate_logo.jpg"
+  image_path: "assets/pirate_logo.jpg"
   ios: true
   macos:
     generate: true
-    image_path: "assets/images/pirate_logo.jpg"
+    image_path: "assets/pirate_logo.jpg"
 
 flutter:
   uses-material-design: true
