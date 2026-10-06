@@ -1,6 +1,8 @@
 import 'dart:typed_data';
+
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:meta/meta.dart';
+
 import '../models/item.dart';
 
 @RecordUse()
@@ -25,7 +27,7 @@ final class Sound {
   };
 
   Future<ByteData> load() {
-    return rootBundle.load('assets/sounds/$id.mp3');
+    return rootBundle.load('packages/idle_pirate/assets/sounds/$id.mp3');
   }
 }
 
