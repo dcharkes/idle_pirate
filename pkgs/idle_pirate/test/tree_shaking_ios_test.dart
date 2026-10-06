@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -53,8 +54,8 @@ void main() {
         'Built Runner.app size: ${totalSizeMB.toStringAsFixed(1)}MB ($totalSizeBytes bytes)',
       );
 
-      // Expect the app size to be exactly 17217870 bytes. If the app grows/shrinks, this can be updated.
-      const int expectedSizeBytes = 17217870;
+      // Expect the app size to be exactly 17069159 bytes. If the app grows/shrinks, this can be updated.
+      const int expectedSizeBytes = 17069159;
       expect(
         totalSizeBytes,
         expectedSizeBytes,
