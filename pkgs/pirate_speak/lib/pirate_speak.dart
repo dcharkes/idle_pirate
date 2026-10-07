@@ -13,7 +13,6 @@ String translate(
 @RecordUse()
 String translateDynamic(
   String key,
-
   @mustBeConst String category,
 ) {
   return _translations[key] ?? key;

@@ -261,6 +261,7 @@ Future<(List<DataAsset>, Set<Uri>)> _filterAndResizeImages(
         outputAssets.add(asset);
         continue;
       }
+      assert(imageTreeShakingLevel == imageTreeShakingFilterAndResize);
 
       final logicalSize = usedImages[id]!;
       const devicePixelRatio = 3.0;
